@@ -1,7 +1,11 @@
 package com.narbaniki.timescrimble;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -27,11 +31,6 @@ public class Utilisateur {
     @Column(nullable = false, unique = true, length = 30)
     private String pseudo;
 
-    @Email
-    @NotBlank
-    @Column(nullable = false, unique = true, length = 100)
-    private String email;
-
     /**
      * Mot de passe hashé.
      */
@@ -56,9 +55,8 @@ public class Utilisateur {
 
     protected Utilisateur() {}
 
-    public Utilisateur(String pseudo, String email, String motDePasse) {
+    public Utilisateur(String pseudo, String motDePasse) {
         this.pseudo = pseudo;
-        this.email = email;
         this.motDePasse = motDePasse;
     }
 
@@ -84,14 +82,6 @@ public class Utilisateur {
 
     public void setPseudo(String pseudo) { 
         this.pseudo = pseudo;
-    }
-
-    public String getEmail() { 
-        return email;
-    }
-
-    public void setEmail(String email) { 
-        this.email = email; 
     }
 
     public String getMotDePasse() { 

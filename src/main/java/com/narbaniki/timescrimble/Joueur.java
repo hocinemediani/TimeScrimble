@@ -1,5 +1,7 @@
 package com.narbaniki.timescrimble;
 
+
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -198,6 +200,7 @@ public class Joueur {
     public void setSocketId(String socketId) { 
         this.socketId = socketId;
     }
+
 
     public Utilisateur getUtilisateur() {
         return utilisateur;

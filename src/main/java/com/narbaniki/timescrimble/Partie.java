@@ -11,8 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+
 /**
- * Représente une salle de jeu.
+ * Représente une salle de jeu et les règles associées à une partie.
  *
  * Etat d'une partie :
  *   ATTENTE → EN_COURS → TERMINEE
@@ -29,9 +30,12 @@ import java.util.UUID;
 @Table(name = "parties")
 public class Partie {
 
+    @Autowired
+    private PartieRepository partieRepository;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     /**
      * Nom de la salle affiché dans le menu principal.
@@ -83,6 +87,12 @@ public class Partie {
      */
     @OneToMany(mappedBy = "partie", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Joueur> joueurs = new ArrayList<>();
+
+    /**
+     * Mot à deviner
+     */
+    @Column(nullable=false)
+    private String motADeviné;
 
     // Hooks JPA
 
@@ -138,7 +148,7 @@ public class Partie {
 
     /**
      * Passe la partie à l'état EN_COURS.
-     * Seul le host (premier joueur) peut déclencher cela via JeuService.
+     * Seul le host (premier joueur) peut déclencher cela via PartieService.
      *
      * @throws IllegalStateException si moins de 2 joueurs sont présents.
      */
@@ -154,7 +164,7 @@ public class Partie {
 
     /**
      * Passe la partie à l'état TERMINEE.
-     * Appelé par JeuService une fois la dernière manche résolue.
+     * Appelé par PartieService une fois la dernière manche résolue.
      */
     public void terminer() {
         if (statut != StatutPartie.EN_COURS) {
@@ -183,9 +193,23 @@ public class Partie {
         return joueurs.size() >= nbJoueursMax;
     }
 
+    /**
+     * Récupérer toutes les parties
+     */
+    public List<Partie> toutesLesParties() {
+        return partieRepository.findAll();
+    }
+
+    /**
+     * Trouve une partie avec l'ID.
+     */
+    public Partie findByID(int Id) {
+        return toutesLesParties().get(Id);
+    }
+
     // Getters / Setters
 
-    public Long getId() {
+    public int getId() {
          return id;
     }
 
@@ -217,6 +241,7 @@ public class Partie {
         this.nbJoueursMax = nbJoueursMax;
     }
 
+
     public StatutPartie getStatut() {
         return statut;
     }
@@ -227,5 +252,9 @@ public class Partie {
 
     public List<Joueur> getJoueurs() { 
         return joueurs; 
+    }
+
+    public String getMotADeviné() {
+        return motADeviné;
     }
 }
