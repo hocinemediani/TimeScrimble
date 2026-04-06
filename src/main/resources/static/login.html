@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Welcome to TimeScrimble !</title>
+</head>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Balsamiq+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+    body {
+        min-height: 100vh;
+    }
+    body {
+        background: var(--main-color);
+        font-family: 'Balsamiq Sans';
+    }
+    .main-content {
+        padding-top: 5%;
+        display: flex;
+        justify-content: space-around;
+        height: 100%;
+    }
+    .text {
+        font-size: 1.85rem;
+        font-weight: normal;
+        color: var(--text-color);
+    }
+    .button {
+        margin-top: 10%;
+        color: black;
+        background-color: var(--textbox-color);
+        font-size: 1.5rem;
+        height: 4rem;
+        aspect-ratio: 16/9;
+        border-radius: 0.5rem;
+        border-color: var(--textbox-color);
+        padding: 0.5rem;
+        width: 100%;
+    }
+    .buttons {
+        margin-top: 10%;
+        color: black;
+        background-color: var(--textbox-color);
+        font-size: 1.5rem;
+        height: 4rem;
+        aspect-ratio: 16/9;
+        border-radius: 0.5rem;
+        border-color: var(--textbox-color);
+        padding: 0.5rem;
+        width: 45%;
+    }
+    .container {
+        width: 35%;
+        background-color: var(--secondary-color);
+        display: flex;
+        flex-direction: column;
+    }
+    .sign-in-sign-up, .play-as-guest {
+        padding: 10%;
+    }
+    .centered {
+        font-size: 2.25rem;
+        margin-top: 15%;
+        text-align: center;
+    }
+    .login-text {
+        margin-top: 10%;
+    }
+    .input {
+        height: 3.5rem;
+        width: 100%;
+    }
+    .options {
+        width: 100%;
+        display: flex;
+        gap : 10%;
+    }
+    .option {
+        margin-top: 25%;
+        margin-left: 50%;
+        transform: translateX(-50%);
+    }
+    input[type='text'], input[type='submit'], input[type='password'] {
+        font-weight: normal;
+        font-size: 2rem;
+        font-family: 'Balsamiq Sans';
+    }
+    .slider1, .slider2, .slider3 {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        content: "";
+        animation-name: slideUp;
+        animation-timing-function: cubic-bezier(.22,.49,.88,.91);
+        animation-fill-mode: forwards;
+    }
+    .slider1 {
+        background-color: var(--main-color);
+        z-index: 500;
+        animation-delay: 4s;
+        animation-duration: 2s;
+    }
+    .slider2 {
+        background-color: var(--secondary-color);
+        z-index: 450;
+        animation-delay: 4.05s;
+        animation-duration: 2.15s;
+    }
+    .slider3 {
+        background-color: black;
+        z-index: 400;
+        animation-delay: 4.08s;
+        animation-duration: 2.1s;
+    }
+    @keyframes slideUp {
+        from{top: 0%;}
+        to{top: -300%; display: none;}
+    }
+</style>
+<body>
+    <div class="slider1"></div>
+    <div class="slider2"></div>
+    <div class="slider3"></div>
+    <div class="main-content">
+        <div class="container">
+            <div class="play-as-guest">
+                <h1 class="centered text">Play as a guest</h1>
+                <h1 class="login-text text">Username :</h1>
+                <form method="POST" action="login">
+                    <input type="text" name="username" class="input">
+                    <input type="submit" value="Connexion" class="button option">
+                </form>
+            </div>
+        </div>
+        <div class="container">
+            <div class="sign-in-sign-up">
+                <h1 class="centered text">Sign in / Sign up</h1>
+                <h1 class="login-text text">Username :</h1>
+                <form method="POST" action="login">
+                    <input type="text" name="username" class="input">
+                    <h1 class="login-text text">Password :</h1>
+                    <input type="password" name="password" class="input">
+                    <div class="options">
+                        <input type="submit" value="Sign in" op="signin" class="buttons">
+                        <input type="submit" value="Sign up" op="signup" class="buttons">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
