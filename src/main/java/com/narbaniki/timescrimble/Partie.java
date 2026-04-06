@@ -1,3 +1,5 @@
+package com.narbaniki.timescrimble;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -65,7 +67,7 @@ public class Partie {
      * Statut courant de la partie (ATTENTE, EN_COURS, TERMINEE).
      */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false)
     private StatutPartie statut = StatutPartie.ATTENTE;
 
     /**
@@ -215,7 +217,7 @@ public class Partie {
         this.nbJoueursMax = nbJoueursMax;
     }
 
-    public StatutPartie getStatut() { $
+    public StatutPartie getStatut() {
         return statut;
     }
 

@@ -1,6 +1,16 @@
-import java.beans.Transient;
+package com.narbaniki.timescrimble;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -61,7 +71,6 @@ public class Joueur {
      * @Transient : pas stocké en base. Le socketId change à chaque reconnexion,
      * il n'a de sens que dans la mémoire du serveur en cours d'exécution.
      */
-    @Transient
     private String socketId;
  
     // Relations
@@ -190,14 +199,14 @@ public class Joueur {
         this.socketId = socketId;
     }
 
-    public Utilisateur getUtilisateur() { return
-         utilisateur; 
+    public Utilisateur getUtilisateur() {
+        return utilisateur;
     }
 
     public Partie getPartie() { 
-        return partie; 
+        return partie;
     }
     public void setPartie(Partie partie) { 
-        this.partie = partie; 
+        this.partie = partie;
     }
 }
