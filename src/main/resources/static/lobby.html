@@ -15,7 +15,6 @@
         margin: 0;
         padding: 40px;
     }
-
     .header {
         display: flex;
         justify-content: space-between;
@@ -36,7 +35,6 @@
         cursor: pointer;
         text-decoration: none;
     }
-
     .main-content {
         display: grid;
         grid-template-columns: 1.5fr 1fr;
@@ -44,13 +42,11 @@
         width: 100%;
         box-sizing: border-box;
     }
-
     .box-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
     }
-
     .box-wrapper .container {
         flex-grow: 1;
     }
@@ -84,8 +80,11 @@
         background-color: var(--second-accent-color);
         color: white;
     }
-
-    .label-text { font-size: 1.2rem; margin-bottom: 5px; display: block; }
+    .label-text {
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+        display: block;
+    }
     .input-field {
         width: 100%;
         height: 3rem;
@@ -144,7 +143,7 @@
 
     <div class="header">
         <div class="user-info">
-            Bonjour <span>Banshai</span> ! 
+            Bonjour <span id="username">Banshai</span> ! 
             (<span class="stats-green">13V</span> / 
              <span class="stats-red">4D</span>)
         </div>
