@@ -72,15 +72,9 @@ public class Facade {
                 case "guest":
                     response.sendRedirect("login.html");
                     throw new IllegalArgumentException("Format invalide : le payload doit contenir exactement 3 arguments.");
-                case "sign-up":
-                    Utilisateur utilisateur2 = authService.connect(username, password);
-                    
-                    // Sauvegarde dans la session
-                    session.setAttribute("utilisateur", utilisateur2);
-                    response.sendRedirect("lobby.html");
-                    break;
                 default:
                     throw new IllegalArgumentException("Cas de base");
+                    
             }
         } catch (IllegalArgumentException e) {
 

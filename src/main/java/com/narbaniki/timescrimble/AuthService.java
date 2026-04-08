@@ -12,6 +12,8 @@ public class AuthService {
  
     private UtilisateurRepository utilisateurRepository;
  
+    // Constructeur vide utilisé par autowired
+    public AuthService() {}
 
     public AuthService(UtilisateurRepository utilisateurRepository) {
         this.utilisateurRepository = utilisateurRepository;
