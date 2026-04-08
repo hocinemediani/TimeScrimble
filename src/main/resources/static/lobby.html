@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>TimeScrimble - Lobby</title>
+</head>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Balsamiq+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+    body {
+        background: var(--main-color);
+        font-family: 'Balsamiq Sans';
+        color: var(--text-color);
+        margin: 0;
+        padding: 40px;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+    }
+    .user-info { font-size: 2rem; }
+    .stats-green { color: #14BB41; }
+    .stats-red { color: #FF0004; }
+    .btn-logout {
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 0.5rem;
+        font-family: 'Balsamiq Sans';
+        font-size: 1.2rem;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .main-content {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 30px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .box-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    }
+
+    .box-wrapper .container {
+        flex-grow: 1;
+    }
+    h2 {
+        font-size: 1.8rem;
+        margin-top: 0;
+        border-bottom: 2px;
+        padding-bottom: 10px;
+    }
+    .container {
+        background-color: var(--secondary-color);
+        padding: 25px;
+        border-radius: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .radio-switch input[type="radio"] {
+        display: none;
+    }
+    .btn-radio {
+        background-color: var(--light-color);
+        color: var(--text-color);
+        padding: 10px 20px;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        text-align: center;
+        font-family: 'Balsamiq Sans';
+        transition: all 0.2s ease;
+        flex: 1;
+    }
+    .radio-switch input[type="radio"]:checked + .btn-radio {
+        background-color: var(--second-accent-color);
+        color: white;
+    }
+
+    .label-text { font-size: 1.2rem; margin-bottom: 5px; display: block; }
+    .input-field {
+        width: 100%;
+        height: 3rem;
+        font-size: 1.2rem;
+        font-family: 'Balsamiq Sans';
+        border-radius: 0.4rem;
+        border: none;
+        margin-bottom: 15px;
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+    .btn-action {
+        background-color: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 0.5rem;
+        font-family: 'Balsamiq Sans';
+        font-size: 1.3rem;
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+    .btn-action:active { transform: scale(0.95); }
+
+    .public-list-container {
+        grid-column: span 2;
+        margin-top: 5px;
+    }
+    .party-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 1.3rem;
+    }
+    .party-table th {
+        background-color: var(--second-accent-color);
+        padding: 10px;
+        text-align: left;
+        border-bottom: 10px solid var(--secondary-color);
+    }
+    .party-table td {
+        padding: 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .impair {
+        background-color: var(--accent-color);
+    }
+    .pair {
+        background-color: var(--light-color);
+    }
+    .btn-rejoindre {
+        text-decoration: none;
+        font-weight: bold;
+    }
+</style>
+<body>
+
+    <div class="header">
+        <div class="user-info">
+            Bonjour <span>Banshai</span> ! 
+            (<span class="stats-green">13V</span> / 
+             <span class="stats-red">4D</span>)
+        </div>
+        <a class="btn-logout">Déconnexion</a>
+    </div>
+
+    <div class="main-content">
+
+        <div class="box-wrapper">
+            <h2>Créer une partie privée / publique</h2>
+            <div class="container">
+                <form action="create" method="POST">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="label-text" style="white-space: nowrap; margin-bottom: 0;">Nom de la partie :</span>
+                            <input type="text" name="nom" class="input-field" style="margin-bottom: 0;" required>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="label-text" style="white-space: nowrap; margin-bottom: 0;">Nombre joueurs :</span>
+                            <input type="number" name="nbMax" class="input-field" min="2" max="70" value="4" style="margin-bottom: 0;" required>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                        <div>
+                            <textarea name="customWords" class="input-field" style="height: 100%; min-height: 100px; padding: 10px; resize: vertical; margin-bottom: 0;" placeholder="Mots personnalisés"></textarea>
+                        </div>
+                        <div style="display: flex; flex-direction: column; justify-content: space-between;">
+                            <div class="radio-switch" style="display: flex; gap: 10px;">
+                                <input type="radio" id="radio-private" name="isPrivate" value="true">
+                                <label for="radio-private" class="btn-radio">Privée</label>
+
+                                <input type="radio" id="radio-public" name="isPrivate" value="false" checked>
+                                <label for="radio-public" class="btn-radio">Publique</label>
+                            </div>
+                            <button type="submit" class="btn-action" style="width: 100%;">Créer la partie</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="box-wrapper">
+            <h2>Rejoindre une partie</h2>
+            <div class="container" style="display: flex; flex-direction: column;">
+                <form action="join" method="POST">
+                    <span class="label-text">Code de la partie :</span>
+                    <input type="text" name="code" class="input-field" placeholder="Ex: AX789" maxlength="6" required>
+                    <button type="submit" class="btn-action" style="width: 100%; margin-top: 2%;">Rejoindre</button>
+                </form>
+            </div>
+        </div>
+
+        <div style="grid-column: span 2;">
+            <h2>Liste des parties publiques</h2>
+            <div class="container public-list-container">
+                <table class="party-table">
+                    <thead>
+                        <tr>
+                            <th>Nom de la partie :</th>
+                            <th>Nombre de joueurs :</th>
+                            <th style="text-align: right;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="impair">
+                            <td>Banshai's room</td>
+                            <td>3/7</td>
+                            <td style="text-align: right;">
+                                <a class="btn-rejoindre">Rejoindre</a>
+                            </td>
+                        </tr>
+                        <tr class="pair">
+                            <td>Hocine's room</td>
+                            <td>6/7</td>
+                            <td style="text-align: right;">
+                                <a class="btn-rejoindre">Rejoindre</a>
+                            </td>
+                        </tr>
+                        <tr class="impair">
+                            <td>Iki's room</td>
+                            <td>2/7</td>
+                            <td style="text-align: right;">
+                                <a class="btn-rejoindre">Rejoindre</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+            
+    </div>
+</body>
+</html>
