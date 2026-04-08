@@ -99,7 +99,7 @@ public class Partie {
      * Mot à deviner
      */
     @Column(nullable=false)
-    private String motADeviné;
+    private String motADeviner;
 
     // Hooks JPA
 
@@ -261,7 +261,7 @@ public class Partie {
         return joueurs; 
     }
 
-    public String getMotADeviné() {
-        return motADeviné;
+    public String getMotADeviner() {
+        return motADeviner;
     }
 }

@@ -21,7 +21,7 @@ public class Utilisateur {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     /**
      * Pseudo affiché en jeu. Doit être unique en base.
@@ -72,7 +72,7 @@ public class Utilisateur {
 
     // Getters / Setters
 
-    public Long getId() { 
+    public int getId() { 
         return id;
     }
 

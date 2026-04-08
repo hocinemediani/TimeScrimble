@@ -34,7 +34,7 @@ public class Joueur {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     /**
      * Pseudo affiché en jeu pour ce joueur dans cette partie.
@@ -164,7 +164,7 @@ public class Joueur {
 
     // Getters / Setters
 
-    public Long getId() { 
+    public int getId() { 
         return id; 
     }
 
