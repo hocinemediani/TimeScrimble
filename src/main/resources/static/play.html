@@ -30,15 +30,18 @@
     }
     .main-container {
         display: flex;
+        min-height: 80vh;
+        height: 100%;
     }
     .play-container {
         display: flex;
+        width: 100%;
     }
     .word-guess {
-        position: relative;
-        display: flex;
+        padding: 0 2% 0 0.5%;
+        position: absolute;
         bottom: 0;
-        width: fit-content;
+        background-color: var(--blank-color);
     }
     .word-guess-letter-count {
         font-size: 1rem;
@@ -60,14 +63,29 @@
         align-items: center;
         justify-content: center;
     }
+    .drawing-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
     .timer-image {
         width: 50%;
+    }
+    .side-bar {
+        width: 12.5%;
+    }
+    .chat-container {
+        width: 20%;
     }
     form {
         display: flex;
     }
     canvas {
         background-color: var(--textbox-color);
+        width: 100%;
+        height: 100%;
     }
 </style>
 <body>
@@ -103,7 +121,7 @@
                     </div>
                 </div>
                 <div class="drawing-container">
-                    <canvas id="canvas" width="1000" height="600"></canvas>
+                    <canvas id="canvas"></canvas>
                     <div class="word-guess">
                         <h1 class="word-guess-text">_ _ _ _ _ _ _ _ </h1>
                         <h1 class="word-guess-letter-count">8</h1>
@@ -127,38 +145,42 @@
     </div>
 </body>
 <script>
-    let canvas = document.getElementById("canvas");
-    let canvasContext = canvas.getContext("2d");
-    let isDrawing = false;
-    let xPos = 0;
-    let yPos = 0;
-    function initialiseMouse(mouseEvent) {
-        xPos = mouseEvent.offsetX;
-        yPos = mouseEvent.offsetY;
-        isDrawing = true;
-    }
-    function draw(mouseEvent) {
-        if (!isDrawing) {
-            return;
+    window.addEventListener('load', function() {
+        let canvas = document.getElementById("canvas");
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        let canvasContext = canvas.getContext("2d");
+        let isDrawing = false;
+        let xPos = 0;
+        let yPos = 0;
+        function initialiseMouse(mouseEvent) {
+            xPos = mouseEvent.offsetX;
+            yPos = mouseEvent.offsetY;
+            isDrawing = true;
         }
-        canvasContext.beginPath();
-        canvasContext.strokeStyle = "black";
-        canvasContext.lineWidth = 5;
-        canvasContext.moveTo(xPos, yPos);
-        xPos = mouseEvent.offsetX;
-        yPos = mouseEvent.offsetY;
-        canvasContext.lineTo(xPos, yPos);
-        canvasContext.stroke();
-        canvasContext.closePath();
-    }
-    function endDrawing(mouseEvent) {
-        draw(mouseEvent);
-        xPos = 0;
-        yPos = 0;
-        isDrawing = false;
-    }
-    canvas.addEventListener("mousedown", initialiseMouse);
-    canvas.addEventListener("mousemove", draw);
-    canvas.addEventListener("mouseup", endDrawing);
+        function draw(mouseEvent) {
+            if (!isDrawing) {
+                return;
+            }
+            canvasContext.beginPath();
+            canvasContext.strokeStyle = "black";
+            canvasContext.lineWidth = 5;
+            canvasContext.moveTo(xPos, yPos);
+            xPos = mouseEvent.offsetX;
+            yPos = mouseEvent.offsetY;
+            canvasContext.lineTo(xPos, yPos);
+            canvasContext.stroke();
+            canvasContext.closePath();
+        }
+        function endDrawing(mouseEvent) {
+            draw(mouseEvent);
+            xPos = 0;
+            yPos = 0;
+            isDrawing = false;
+        }
+        canvas.addEventListener("mousedown", initialiseMouse);
+        canvas.addEventListener("mousemove", draw);
+        canvas.addEventListener("mouseup", endDrawing);
+    });
 </script>
 </html>
