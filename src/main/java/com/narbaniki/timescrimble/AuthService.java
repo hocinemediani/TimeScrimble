@@ -41,7 +41,7 @@ public class AuthService {
      * @param motDePasse
      * @return l'utilisateur 
      */
-    public Utilisateur connect(String pseudo, String motDePasse) {
+    public Utilisateur connect(String pseudo, String motDePasse) throws IllegalArgumentException {
  
         // Cherche l'utilisateur par pseudo
         Optional<Utilisateur> optUtilisateur = utilisateurRepository.findByPseudo(pseudo);
