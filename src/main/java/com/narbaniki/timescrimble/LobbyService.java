@@ -35,9 +35,11 @@ public class LobbyService {
     public void join(String code, Utilisateur user) {
             Partie partie = partieRepository.findByCode(code);
             if (partie == null) {
+                System.out.printf("Aucune partie n'existe avec ce code : %s.%n", code);
                 throw new IllegalArgumentException("Partie non trouvée avec ce code.");
             }
             if (partie.getJoueurs().size() >= partie.getNbJoueursMax()) {
+                System.out.println("La partie est déjà pleine.");
                 throw new IllegalStateException("La partie est déjà pleine.");
             }    
             Joueur joueur = new Joueur(user, partie);

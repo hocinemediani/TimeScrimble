@@ -21,8 +21,8 @@
         margin-bottom: 40px;
     }
     .user-info { font-size: 2rem; }
-    .stats-green { color: #14BB41; }
-    .stats-red { color: #c80202; }
+    .stats-win { color: #14BB41; }
+    .stats-losses { color: #c80202; }
     .btn-logout {
         background-color: #c80202;
         color: #ffffff;
@@ -141,9 +141,9 @@
 <body>
     <div class="header">
         <div class="user-info">
-            Bonjour <span id="username">Banshai</span> ! 
-            (<span class="stats-green">13</span>V / 
-             <span class="stats-red">4</span>D)
+            Bonjour <span id="username">Undefined</span> ! 
+            (<span class="stats-win"><span id="wins">_</span>V /</span> 
+             <span class="stats-losses"><span id="losses">_</span>D</span>)
         </div>
         <a class="btn-logout">Déconnexion</a>
     </div>
@@ -229,4 +229,26 @@
         </div>
     </div>
 </body>
+<script>
+    async function fetchUserInfo() {
+        try {
+            const infos = await fetch("http://timescrimble.local:8080/userinfo", {
+                method: "GET",
+                credentials: "include"
+            });
+            if (!infos.ok) {
+                console.error("GROS PROBLEME !!! Statut HTTP :", infos.status);
+                globalThis.location.href = "/login";
+                return;
+            }
+            const userInfos = await infos.json();
+            document.getElementById("username").innerText = userInfos.username;
+            document.getElementById("wins").innerText = userInfos.wins;
+            document.getElementById("losses").innerText = userInfos.losses;
+        } catch (error) {
+            console.error("Problème de connexion à l'API : ", error)
+        }
+    }
+    fetchUserInfo();
+</script>
 </html>

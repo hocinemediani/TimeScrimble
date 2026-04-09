@@ -20,28 +20,27 @@ public class LobbyController {
     @Autowired
     private LobbyService lobbyService;
     
-        @PostMapping("/create")
-        public void createRoom(HttpServletRequest request, HttpServletResponse response,
-                              @RequestParam(value = "nom", required = true) String nom,
-                              @RequestParam(value = "nbMax", required = true) Integer nb,
-                              @RequestParam(value = "isPrivate", required = true) Boolean priv,
-                              HttpSession session) throws IOException {
-            try {
-                Utilisateur user = (Utilisateur) session.getAttribute("user");
-                lobbyService.create(nom, nb, priv, user);
-                response.sendRedirect("lobby.html");
-            } catch (IllegalArgumentException e) {
-                response.sendRedirect("lobby.html");
-        }
-        }
-    
-        @PostMapping("/join")
-        public void joinRoom(HttpServletRequest request, HttpServletResponse response,
-                              @RequestParam(value = "code", required = true) String code,
-                              HttpSession session) {
+    @PostMapping("/create")
+    public void createRoom(HttpServletRequest request, HttpServletResponse response,
+                            @RequestParam(value = "nom", required = true) String nom,
+                            @RequestParam(value = "nbMax", required = true) Integer nb,
+                            @RequestParam(value = "isPrivate", required = true) Boolean priv,
+                            HttpSession session) throws IOException {
+        try {
             Utilisateur user = (Utilisateur) session.getAttribute("user");
-            lobbyService.join(code, user);
-        }
+            lobbyService.create(nom, nb, priv, user);
+            response.sendRedirect("lobby.html");
+        } catch (IllegalArgumentException e) {
+            response.sendRedirect("lobby.html");
+    }
+    }
+    
+    @GetMapping("/join")
+    public void joinRoom(HttpServletRequest request, HttpServletResponse response,
+                         @RequestParam String code, HttpSession session) {
+        Utilisateur user = (Utilisateur) session.getAttribute("user");
+        lobbyService.join(code, user);
+    }
 
     @GetMapping("/publiques")
     public List<Partie> getPublicRoom() {

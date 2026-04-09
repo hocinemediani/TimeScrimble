@@ -1,6 +1,9 @@
 package com.narbaniki.timescrimble;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +23,8 @@ public class Facade {
 
     @Autowired
     private AuthService authService;
+    @Autowired
+    private UtilisateurRepository utilisateurRepository;
     
     @GetMapping("/")
     public void home(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -38,6 +43,22 @@ public class Facade {
         } else {
             response.sendRedirect("login");
         }
+    }
+
+    @GetMapping("/userinfo")
+    public Map<String, String> userInfo(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+        String apiToken = (String) session.getAttribute("apiToken");
+        Optional<Utilisateur> userOpt = utilisateurRepository.findByApiToken(apiToken);
+        if (userOpt.isEmpty()) {
+            System.out.println("Aucun utilisateur ne possède ce token.");
+            throw new IllegalArgumentException("Pas d'utilisateur pour ce token.");
+        }
+        Utilisateur user = userOpt.get();
+        HashMap<String, String> infos = new HashMap<>();
+        infos.put("username", user.getPseudo());
+        infos.put("wins", Integer.toString(user.getVictoires()));
+        infos.put("losses", Integer.toString(user.getTotalParties() - user.getVictoires()));
+        return infos;
     }
 
     @PostMapping("/login")
