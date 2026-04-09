@@ -6,9 +6,103 @@
     <link rel="stylesheet" href="styles.css">
     <title>Playroom</title>
 </head>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Balsamiq+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+    body {
+        min-height: 100vh;
+        background: var(--main-color);
+        font-family: 'Balsamiq Sans';
+        color: var(--text-color);
+    }
+    canvas {
+        background-color: var(--textbox-color);
+    }
+</style>
 <body>
-    <canvas>
-        
-    </canvas>
+    <div class="game-code">
+        <h1 class="game-code-text">Room's code</h1>
+    </div>
+    <div class="main-content">
+        <h1 class="player-count"><span>5</span> Players</h1>
+        <div class="play-container">
+            <div class="chat-container">
+                <div class="chat-message">
+                    <h1 class="player-name">Banshai (878pts)</h1>
+                    <h1 class="message-content">La muraille de Chine</h1>
+                </div>
+                <div class="chat-message">
+                    <h1 class="player-name">Iki (197pts)</h1>
+                    <h1 class="message-content">Nourriture typique asiatique</h1>
+                </div>
+                <div class="chat-message">
+                    <h1 class="player-name">Hocine (240pts)</h1>
+                    <h1 class="message-content">à trouvé la réponse !</h1>
+                </div>
+                <div class="chat-input">
+                    <h1 class="chat-text-header">Type your guess here :</h1>
+                    <form method="POST" action="sendmessage">
+                        <input type="textbox" name="guess">
+                        <input type="hidden" name="code" value="xxxxxx">
+                        <input type="submit" value=">">
+                    </form>
+                </div>
+            </div>
+            <div class="drawing-container">
+                <canvas id="canvas" width="1000" height="600"></canvas>
+                <div class="word-guess">
+                    <h1 class="word-guess-text">_ _ _ _ _ _ _ _</h1>
+                    <h1 class="word-guess-letter-count">8</h1>
+                </div>
+            </div>
+        </div>
+        <div class="side-bar">
+            <div class="tools-container">
+                <h1 class="tools-text">Tools</h1>
+                <div class="tools"></div>
+            </div>
+            <div class="colors-container">
+                <h1 class="colors-text">Colors</h1>
+            </div>
+            <div class="timer">
+                <img class="timer-image" src="timer.png" alt="Timer">
+                <h1 class="timer-text">46</h1>
+            </div>
+        </div>
+    </div>
 </body>
+<script>
+    let canvas = document.getElementById("canvas");
+    let canvasContext = canvas.getContext("2d");
+    let isDrawing = false;
+    let xPos = 0;
+    let yPos = 0;
+    function initialiseMouse(mouseEvent) {
+        xPos = mouseEvent.offsetX;
+        yPos = mouseEvent.offsetY;
+        isDrawing = true;
+    }
+    function draw(mouseEvent) {
+        if (!isDrawing) {
+            return;
+        }
+        canvasContext.beginPath();
+        canvasContext.strokeStyle = "black";
+        canvasContext.lineWidth = 5;
+        canvasContext.moveTo(xPos, yPos);
+        xPos = mouseEvent.offsetX;
+        yPos = mouseEvent.offsetY;
+        canvasContext.lineTo(xPos, yPos);
+        canvasContext.stroke();
+        canvasContext.closePath();
+    }
+    function endDrawing(mouseEvent) {
+        draw(mouseEvent);
+        xPos = 0;
+        yPos = 0;
+        isDrawing = false;
+    }
+    canvas.addEventListener("mousedown", initialiseMouse);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", endDrawing);
+</script>
 </html>
