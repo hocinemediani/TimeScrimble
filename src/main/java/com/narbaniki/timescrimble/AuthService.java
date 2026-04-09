@@ -81,6 +81,5 @@ public class AuthService {
             System.out.println("Le pseudonyme doit contenir entre 1 et 20 caractères.");
             throw new IllegalArgumentException("Le pseudo doit avoir au minimum un caractère et au maximum 20.");
         }
-
     }
 }

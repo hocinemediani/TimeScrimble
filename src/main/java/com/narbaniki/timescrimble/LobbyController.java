@@ -1,15 +1,14 @@
 package com.narbaniki.timescrimble;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -26,7 +25,7 @@ public class LobbyController {
                               @RequestParam(value = "nom", required = true) String nom,
                               @RequestParam(value = "nbMax", required = true) Integer nb,
                               @RequestParam(value = "isPrivate", required = true) Boolean priv,
-                              HttpSession session) throws ServletException, IOException {
+                              HttpSession session) throws IOException {
             try {
                 Utilisateur user = (Utilisateur) session.getAttribute("user");
                 lobbyService.create(nom, nb, priv, user);
@@ -45,7 +44,7 @@ public class LobbyController {
         }
 
     @GetMapping("/publiques")
-    public ArrayList<Partie> getPublicRoom() {
-        return lobbyService.AllPrivate();
+    public List<Partie> getPublicRoom() {
+        return lobbyService.allPrivate();
     }
 }

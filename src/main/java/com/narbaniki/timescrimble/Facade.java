@@ -28,12 +28,12 @@ public class Facade {
 
     @GetMapping("/login")
     public void login(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("login.html").forward(request, response);
+        home(request, response);
     }
 
     @GetMapping("/lobby")
     public void lobby(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException {
-        if (session.getAttribute("utilisateurPseudo") != null || session.getAttribute("guestName") != null) {
+        if (session.getAttribute("username") != null || session.getAttribute("guestName") != null) {
             response.sendRedirect("lobby.html");
         } else {
             response.sendRedirect("login");
@@ -50,13 +50,13 @@ public class Facade {
             switch(action.toLowerCase()) {
                 case "sign-in" -> {
                     Utilisateur utilisateur = authService.connect(username, password);
-                    session.setAttribute("utilisateurPseudo", utilisateur.getPseudo());
+                    session.setAttribute("username", utilisateur.getPseudo());
                     session.setAttribute("apiToken", utilisateur.getApiToken());
                     response.sendRedirect("lobby");
                 }
                 case "sign-up" -> {
                     Utilisateur utilisateur = authService.register(username, password);
-                    session.setAttribute("utilisateurPseudo", utilisateur.getPseudo());
+                    session.setAttribute("username", utilisateur.getPseudo());
                     session.setAttribute("apiToken", utilisateur.getApiToken());
                     response.sendRedirect("lobby");
                 }

@@ -1,17 +1,18 @@
 package com.narbaniki.timescrimble;
-import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 @Service
 public class LobbyService {
 
-    private PartieRepository partieRepository;
+    private final PartieRepository partieRepository;
 
     public LobbyService(PartieRepository partieRepository) {
         this.partieRepository = partieRepository;
     }
 
-    public ArrayList<Partie> AllPrivate(){
+    public List<Partie> allPrivate(){
         return this.partieRepository.findAllByEstPriveeFalse();
     }
 
