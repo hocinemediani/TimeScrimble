@@ -145,7 +145,7 @@
             (<span class="stats-win"><span id="wins">_</span>V /</span> 
              <span class="stats-losses"><span id="losses">_</span>D</span>)
         </div>
-        <a class="btn-logout">Déconnexion</a>
+        <button class="btn-logout" onclick="disconnectUser()"">Déconnexion</button>
     </div>
     <div class="main-content">
         <div class="box-wrapper">
@@ -230,6 +230,13 @@
     </div>
 </body>
 <script>
+    async function disconnectUser() {
+        await fetch("http://timescrimble.local:8080/disconnect", {
+            method: "POST",
+            credentials: "include"
+        });
+        globalThis.location.href = "/login";
+    }
     async function fetchUserInfo() {
         try {
             const infos = await fetch("http://timescrimble.local:8080/userinfo", {

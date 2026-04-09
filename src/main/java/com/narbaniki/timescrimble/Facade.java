@@ -45,6 +45,11 @@ public class Facade {
         }
     }
 
+    @PostMapping("/disconnect")
+    public void disconnect(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException {
+        session.invalidate();
+    }
+
     @GetMapping("/userinfo")
     public Map<String, String> userInfo(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
         String apiToken = (String) session.getAttribute("apiToken");
