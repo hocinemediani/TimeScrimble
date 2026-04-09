@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,7 +31,7 @@ public class Facade {
         request.getRequestDispatcher("lobby.html").forward(request, response);
     }
 
-    @PostMapping("/register")
+    /*@PostMapping("/register")
     public void doRegister(HttpServletRequest request, HttpServletResponse response, @RequestBody String payload, HttpSession session) throws ServletException, IOException {
         String[] payloadArgs = payload.split("&");
         try {
@@ -52,7 +51,7 @@ public class Facade {
 
         }
 
-    }
+    }*/
 
     @PostMapping("/login")
     public void doLogin(HttpServletRequest request, HttpServletResponse response,
@@ -67,9 +66,18 @@ public class Facade {
                     
                     // Sauvegarde dans la session
                     session.setAttribute("utilisateur", utilisateur);
-                    response.sendRedirect("lobby.html");
+                    response.sendRedirect("lobby");
                     break;
+
+                case "sign-up":
+                    utilisateur = authService.register(username, password);
+                    session.setAttribute("utilisateur", utilisateur);
+                    response.sendRedirect("lobby");
+                    break;
+
                 case "guest":
+                    // Fonction à faire dans authservice pour tester le name
+                    session.setAttribute("guestName",username);
                     response.sendRedirect("login.html");
                     throw new IllegalArgumentException("Format invalide : le payload doit contenir exactement 3 arguments.");
                 default:
