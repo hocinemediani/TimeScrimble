@@ -5,9 +5,6 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UtilisateurRepository extends JpaRepository<Utilisateur, Integer>{
-
-    Optional<Utilisateur> findByPseudo(String pseudo);
-
-    boolean existsByPseudo(String pseudo);
-    
+    Optional<Utilisateur> findByUsername(String pseudo);
+    boolean existsByUsername(String pseudo);
 }

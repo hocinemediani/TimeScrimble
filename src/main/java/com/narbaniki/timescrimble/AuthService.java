@@ -1,7 +1,9 @@
 package com.narbaniki.timescrimble;
  
 import java.util.Optional;
+import java.util.UUID;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
  
 /**
@@ -9,12 +11,13 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class AuthService {
- 
-    private UtilisateurRepository utilisateurRepository;
-    private JoueurRepository joueurRepository;
+    
+    private final UtilisateurRepository utilisateurRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UtilisateurRepository utilisateurRepository) {
+    public AuthService(UtilisateurRepository utilisateurRepository, PasswordEncoder passwordEncoder) {
         this.utilisateurRepository = utilisateurRepository;
+        this.passwordEncoder = passwordEncoder;
     }
  
  
@@ -25,23 +28,20 @@ public class AuthService {
      * @return le nouvel utilisateur
      */
     public Utilisateur register(String pseudo, String motDePasse) {
- 
-        // Vérifie que le pseudo n'est pas déjà utilisé
-        if (utilisateurRepository.existsByPseudo(pseudo)) {
+        if (utilisateurRepository.existsByUsername(pseudo)) {
+            System.out.println("Ce pseudonyme est déjà utilisé.");
             throw new IllegalArgumentException("Ce pseudo est déjà utilisé.");
         }
-
-        // Vérifie la taille du pseudo et du mot de passe
-        if (pseudo.length() >= 20 || pseudo.length() <= 1 ) {
+        if (pseudo.length() > 20 || pseudo.isEmpty()) {
+            System.out.println("Le pseudonyme doit comprendre entre 1 et 20 caractères.");
             throw new IllegalArgumentException("Le pseudo doit avoir au minimum un caractère et au maximum 20.");
         }
-
-        if (motDePasse.length() < 1 ) {
-            throw new IllegalArgumentException("Le mot de passe doit avoir au mopins un caractère.");
+        if (motDePasse.length() <= 1 ) {
+            System.out.println("Le mot de passe doit contenir au moin un caractère.");
+            throw new IllegalArgumentException("Le mot de passe doit avoir au moins un caractère.");
         }
-
- 
-        Utilisateur newUtilisateur = new Utilisateur(pseudo, motDePasse);
+        Utilisateur newUtilisateur = new Utilisateur(pseudo, passwordEncoder.encode(motDePasse));
+        newUtilisateur.setApiToken(UUID.randomUUID().toString());
         return utilisateurRepository.save(newUtilisateur);
     }
  
@@ -53,18 +53,14 @@ public class AuthService {
      * @return l'utilisateur 
      */
     public Utilisateur connect(String pseudo, String motDePasse) throws IllegalArgumentException {
- 
-        // Cherche l'utilisateur par pseudo
-        Optional<Utilisateur> optUtilisateur = utilisateurRepository.findByPseudo(pseudo);
- 
+        Optional<Utilisateur> optUtilisateur = utilisateurRepository.findByUsername(pseudo);
         if (optUtilisateur.isEmpty()) {
+            System.out.println("Utilisateur non trouvé dans la base de donnée.");
             throw new IllegalArgumentException("Pseudo ou mot de passe invalide.");
         }
- 
         Utilisateur utilisateur = optUtilisateur.get();
- 
-        // Compare le mot de passe
-        if (!utilisateur.getMotDePasse().equals(motDePasse)) {
+        if (!passwordEncoder.matches(motDePasse, utilisateur.getMotDePasse())) {
+            System.out.println("Pseudonyme ou mot de passe incorrect.");
             throw new IllegalArgumentException("Pseudo ou mot de passe invalide.");
         }
         return utilisateur;
@@ -77,14 +73,12 @@ public class AuthService {
      * @return l'utilisateur 
      */
     public void connectGuest(String pseudo) {
-        
-        // Vérifie que le pseudo n'est pas déjà utilisé
-        if (utilisateurRepository.existsByPseudo(pseudo)) {
+        if (utilisateurRepository.existsByUsername(pseudo)) {
+            System.out.println("Ce pseudonyme est déjà utilisé.");
             throw new IllegalArgumentException("Ce pseudo est déjà utilisé.");
         }
-
-        // Vérifie la taille du pseudo et du mot de passe
-        if (pseudo.length() >= 20 || pseudo.length() <= 1 ) {
+        if (pseudo.length() > 20 || pseudo.isEmpty()) {
+            System.out.println("Le pseudonyme doit contenir entre 1 et 20 caractères.");
             throw new IllegalArgumentException("Le pseudo doit avoir au minimum un caractère et au maximum 20.");
         }
 

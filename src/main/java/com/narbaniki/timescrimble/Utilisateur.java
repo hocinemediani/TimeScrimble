@@ -1,5 +1,7 @@
 package com.narbaniki.timescrimble;
 
+import java.io.Serializable;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,7 +19,7 @@ import jakarta.validation.constraints.Size;
  */
 @Entity
 @Table(name = "utilisateurs")
-public class Utilisateur {
+public class Utilisateur implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,7 +31,7 @@ public class Utilisateur {
     @NotBlank
     @Size(min = 1, max = 20)
     @Column(nullable = false, unique = true, length = 30)
-    private String pseudo;
+    private String username;
 
     /**
      * Mot de passe hashé.
@@ -39,25 +41,34 @@ public class Utilisateur {
     private String motDePasse;
 
     /**
+     * Token d'accès aléatoire pour l'API.
+     */
+    @Column(unique = true)
+    private String apiToken;
+
+    /**
      * Nombre total de parties jouées (toutes sessions confondues).
      * Incrémenté à la fin de chaque partie.
      */
     @Column(nullable = false)
-    private int totalParties = 0;
+    private int totalParties;
 
     /**
      * Cumul des points sur toutes les parties (pour le classement global).
      */
     @Column(nullable = false)
-    private int totalPoints = 0;
+    private int victoires;
 
     // Constructeurs
 
     protected Utilisateur() {}
 
     public Utilisateur(String pseudo, String motDePasse) {
-        this.pseudo = pseudo;
+        this.username = pseudo;
         this.motDePasse = motDePasse;
+        this.apiToken = "";
+        this.totalParties = 0;
+        this.victoires = 0;
     }
 
 
@@ -65,9 +76,12 @@ public class Utilisateur {
      * Ajoute les points d'une session terminée au cumul global.
      * Appeler une seule fois à la fin de chaque partie.
      */
-    public void ajouterPoints(int points) {
-        this.totalPoints += points;
+    public void incrementerParties() {
         this.totalParties += 1;
+    }
+
+    public void incrementerVictoires() {
+        this.victoires += 1;
     }
 
     // Getters / Setters
@@ -77,11 +91,11 @@ public class Utilisateur {
     }
 
     public String getPseudo() { 
-        return pseudo;
+        return username;
     }
 
     public void setPseudo(String pseudo) { 
-        this.pseudo = pseudo;
+        this.username = pseudo;
     }
 
     public String getMotDePasse() { 
@@ -92,12 +106,20 @@ public class Utilisateur {
         this.motDePasse = motDePasse;
     }
 
+    public String getApiToken() {
+        return apiToken;
+    }
+
+    public void setApiToken(String apiToken) {
+        this.apiToken = apiToken;
+    }
+
     public int getTotalParties() { 
         return totalParties; 
     }
 
-    public int getTotalPoints() { 
-        return totalPoints;
+    public int getVictoires() { 
+        return victoires;
     }
 
 }

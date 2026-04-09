@@ -1,7 +1,6 @@
 package com.narbaniki.timescrimble;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,37 +26,17 @@ public class Facade {
         request.getRequestDispatcher("login.html").forward(request, response);
     }
 
-    /*@PostMapping("/register")
-    public void doRegister(HttpServletRequest request, HttpServletResponse response, @RequestBody String payload, HttpSession session) throws ServletException, IOException {
-        String[] payloadArgs = payload.split("&");
-        try {
-            if (payloadArgs.length == 3) {
-                String username = payloadArgs[0].split("=")[1];
-                String password = payloadArgs[1].split("=")[1];
-                Utilisateur newutilisateur = authService.register(username,password);
-
-                // On garde l'utilisateur en mémoire (Session) pour qu'il reste connecté
-                session.setAttribute("utilisateur", newutilisateur);
-                request.getRequestDispatcher("lobby.html").forward(request, response);
-            } else {
-                request.getRequestDispatcher("login.html").forward(request, response);
-                throw new IllegalArgumentException("Format invalide : le payload doit contenir exactement 3 arguments.");
-            }
-        } catch (IllegalArgumentException e) {
-
-        }
-
-    }*/
+    @GetMapping("/login")
+    public void login(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.getRequestDispatcher("login.html").forward(request, response);
+    }
 
     @GetMapping("/lobby")
-    public void lobby(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException, ServletException {
-        try {
-            Utilisateur user = authService.connect((String) session.getAttribute("utilisateurPseudo"), (String) session.getAttribute("utilisateurMotDePasse"));
+    public void lobby(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException {
+        if (session.getAttribute("utilisateurPseudo") != null || session.getAttribute("guestName") != null) {
             response.sendRedirect("lobby.html");
-        } catch (IllegalArgumentException e) {
-            // tester pour le guest
+        } else {
             response.sendRedirect("login");
-            
         }
     }
 
@@ -66,34 +45,27 @@ public class Facade {
                         @RequestParam(value = "username", required = true) String username,
                         @RequestParam(value = "password", required = false) String password,
                         @RequestParam(value = "action", required = true) String action,
-                        HttpSession session) throws ServletException, IOException {
+                        HttpSession session) throws IOException {
         try {
             switch(action.toLowerCase()) {
-                case "sign-in":
+                case "sign-in" -> {
                     Utilisateur utilisateur = authService.connect(username, password);
-                    
-                    // Sauvegarde de la session
                     session.setAttribute("utilisateurPseudo", utilisateur.getPseudo());
-                    session.setAttribute("utilisateurMotDePasse", utilisateur.getMotDePasse());
-                    session.setAttribute("user", utilisateur);
+                    session.setAttribute("apiToken", utilisateur.getApiToken());
                     response.sendRedirect("lobby");
-                    break;
-
-                case "sign-up":
-                    utilisateur = authService.register(username, password);
+                }
+                case "sign-up" -> {
+                    Utilisateur utilisateur = authService.register(username, password);
                     session.setAttribute("utilisateurPseudo", utilisateur.getPseudo());
-                    session.setAttribute("utilisateurMotDePasse", utilisateur.getMotDePasse());
+                    session.setAttribute("apiToken", utilisateur.getApiToken());
                     response.sendRedirect("lobby");
-                    break;
-
-                case "guest":
+                }
+                case "guest" -> {
                     authService.connectGuest(username);
                     session.setAttribute("guestName", username);
                     response.sendRedirect("lobby");
-
-                default:
-                    response.sendRedirect("login");
-                    
+                }
+                default -> response.sendRedirect("login");
             }
         } catch (IllegalArgumentException e) {
             response.sendRedirect("login.html");
