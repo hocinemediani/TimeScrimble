@@ -1,4 +1,5 @@
 package com.narbaniki.timescrimble;
+import java.io.IOException;
 import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,14 +9,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 @RestController
-@RequestMapping("/api/parties")
+@RequestMapping("/")
 public class LobbyController {
 
+    @Autowired
     private LobbyService lobbyService;
     
         @PostMapping("/create")
@@ -23,9 +26,14 @@ public class LobbyController {
                               @RequestParam(value = "nom", required = true) String nom,
                               @RequestParam(value = "nbMax", required = true) Integer nb,
                               @RequestParam(value = "isPrivate", required = true) Boolean priv,
-                              HttpSession session) {
-            Utilisateur user = (Utilisateur) session.getAttribute("user");
-            lobbyService.create(nom, nb, priv, user);
+                              HttpSession session) throws ServletException, IOException {
+            try {
+                Utilisateur user = (Utilisateur) session.getAttribute("user");
+                lobbyService.create(nom, nb, priv, user);
+                response.sendRedirect("lobby.html");
+            } catch (IllegalArgumentException e) {
+                response.sendRedirect("lobby.html");
+        }
         }
     
         @PostMapping("/join")

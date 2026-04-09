@@ -27,7 +27,7 @@ public class Utilisateur {
      * Pseudo affiché en jeu. Doit être unique en base.
      */
     @NotBlank
-    @Size(min = 2, max = 30)
+    @Size(min = 1, max = 20)
     @Column(nullable = false, unique = true, length = 30)
     private String pseudo;
 

@@ -186,7 +186,7 @@ public class Joueur {
          this.estDessinateur = estDessinateur; 
         }
 
-    public boolean isEstInvite() { 
+    public boolean isInvite() { 
         return estInvite; 
     }
 

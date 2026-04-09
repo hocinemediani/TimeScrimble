@@ -264,4 +264,8 @@ public class Partie {
     public String getMotADeviner() {
         return motADeviner;
     }
+
+    public void setMotADeviner(String motADeviner) {
+        this.motADeviner = motADeviner;
+    }
 }

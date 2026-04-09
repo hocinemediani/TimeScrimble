@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
  
     private UtilisateurRepository utilisateurRepository;
+    private JoueurRepository joueurRepository;
 
     public AuthService(UtilisateurRepository utilisateurRepository) {
         this.utilisateurRepository = utilisateurRepository;
@@ -29,6 +30,16 @@ public class AuthService {
         if (utilisateurRepository.existsByPseudo(pseudo)) {
             throw new IllegalArgumentException("Ce pseudo est déjà utilisé.");
         }
+
+        // Vérifie la taille du pseudo et du mot de passe
+        if (pseudo.length() >= 20 || pseudo.length() <= 1 ) {
+            throw new IllegalArgumentException("Le pseudo doit avoir au minimum un caractère et au maximum 20.");
+        }
+
+        if (motDePasse.length() < 1 ) {
+            throw new IllegalArgumentException("Le mot de passe doit avoir au mopins un caractère.");
+        }
+
  
         Utilisateur newUtilisateur = new Utilisateur(pseudo, motDePasse);
         return utilisateurRepository.save(newUtilisateur);
@@ -57,5 +68,25 @@ public class AuthService {
             throw new IllegalArgumentException("Pseudo ou mot de passe invalide.");
         }
         return utilisateur;
+    }
+
+    /**
+     * Vérifie les identifiants du guest.
+     *
+     * @param pseudo
+     * @return l'utilisateur 
+     */
+    public void connectGuest(String pseudo) {
+        
+        // Vérifie que le pseudo n'est pas déjà utilisé
+        if (utilisateurRepository.existsByPseudo(pseudo)) {
+            throw new IllegalArgumentException("Ce pseudo est déjà utilisé.");
+        }
+
+        // Vérifie la taille du pseudo et du mot de passe
+        if (pseudo.length() >= 20 || pseudo.length() <= 1 ) {
+            throw new IllegalArgumentException("Le pseudo doit avoir au minimum un caractère et au maximum 20.");
+        }
+
     }
 }

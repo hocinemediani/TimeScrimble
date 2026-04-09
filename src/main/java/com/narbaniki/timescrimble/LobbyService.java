@@ -1,11 +1,15 @@
 package com.narbaniki.timescrimble;
 import java.util.ArrayList;
+import org.springframework.stereotype.Service;
 
+@Service
 public class LobbyService {
 
     private PartieRepository partieRepository;
 
-    public LobbyService(){}
+    public LobbyService(PartieRepository partieRepository) {
+        this.partieRepository = partieRepository;
+    }
 
     public ArrayList<Partie> AllPrivate(){
         return this.partieRepository.findAllByEstPriveeFalse();
@@ -21,6 +25,7 @@ public class LobbyService {
         }
         partie.setNbJoueursMax(nb);
         partie.setEstPrivee(priv);
+        partie.setMotADeviner("Ilian");
         Joueur joueur = new Joueur(user, partie);
         partie.getJoueurs().add(joueur);
         partieRepository.save(partie);

@@ -72,9 +72,10 @@ public class Facade {
                 case "sign-in":
                     Utilisateur utilisateur = authService.connect(username, password);
                     
-                    // Sauvegarde dans la session
+                    // Sauvegarde de la session
                     session.setAttribute("utilisateurPseudo", utilisateur.getPseudo());
                     session.setAttribute("utilisateurMotDePasse", utilisateur.getMotDePasse());
+                    session.setAttribute("user", utilisateur);
                     response.sendRedirect("lobby");
                     break;
 
@@ -86,9 +87,10 @@ public class Facade {
                     break;
 
                 case "guest":
-                    // Fonction à faire dans authservice pour tester le name
+                    authService.connectGuest(username);
                     session.setAttribute("guestName", username);
                     response.sendRedirect("lobby");
+
                 default:
                     response.sendRedirect("login");
                     
