@@ -139,7 +139,9 @@ public class Joueur {
      * @param points doit être positif ou nul
      */
     public void ajouterPoints(int points) {
-        if (points < 0) throw new IllegalArgumentException("Les points ne peuvent pas être négatifs.");
+        if (points < 0) {
+            return;
+        }
         this.scoreSession += points;
     }
  

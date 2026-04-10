@@ -93,7 +93,7 @@ public class Partie {
      * orphanRemoval : retire un Joueur de la base s'il quitte la partie.
      */
     @OneToMany(mappedBy = "partie", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Joueur> joueurs = new ArrayList<>();
+    private final List<Joueur> joueurs = new ArrayList<>();
 
     /**
      * Mot à deviner
@@ -199,20 +199,6 @@ public class Partie {
     public boolean estPleine() {
         return joueurs.size() >= nbJoueursMax;
     }
-
-    /**
-     * Récupérer toutes les parties
-     */
-    // public List<Partie> toutesLesParties() {
-    //     return partieRepository.findAll();
-    // }
-
-    /**
-     * Trouve une partie avec l'ID.
-     */
-    // public Partie findByID(int Id) {
-    //     return toutesLesParties().get(Id);
-    // }
 
     // Getters / Setters
 

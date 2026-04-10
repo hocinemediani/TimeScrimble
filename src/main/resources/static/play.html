@@ -38,25 +38,24 @@
         width: 100%;
     }
     .word-guess {
-        padding: 0 2% 0 0.5%;
+        padding: 0 max(25px, 2.5vw) 0 1%;
         position: absolute;
         bottom: 0;
         background-color: var(--blank-color);
+        margin: 1%;
     }
     .word-guess-letter-count {
         font-size: 1rem;
         position: absolute;
         bottom: 0;
-        right: 0;
+        right: 3%;
     }
     .player-name {
-        font-size: 1.3rem;
-    }
-    .message-content {
-        font-size: 1.15rem;
+        font-size: 1rem;
     }
     .chat-text-header {
-        font-size: 1.5rem;
+        font-size: 1.1rem;
+        color: black;
     }
     .timer-container {
         display: flex;
@@ -64,59 +63,131 @@
         justify-content: center;
     }
     .drawing-container {
-        width: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
         position: relative;
+        overflow: hidden;
     }
     .timer-image {
         width: 50%;
     }
     .side-bar {
         width: 12.5%;
+        padding: 1%;
+    }
+    .message-content {
+        font-size: 0.9rem;
+        padding-bottom: 5%;
+    }
+    .chat-content {
+        padding-left: 1.5%;
     }
     .chat-container {
-        width: 20%;
+        width: 22%;
+        background-color: var(--textbox-color);
+        border-right: 3px dotted black;
+        position: relative;
+    }
+    .correct {
+        background-color: var(--success-color);
+    }
+    .chat-message {
+        background-color: var(--accent-color);
+        margin: 5% 5% 8% 5%;
+        position: relative;
+    }
+    .chat-message::after {
+        content: '';
+        position: absolute;
+        width: 0; 
+        height: 0;
+        left: 0;
+        border-right: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+        border-left: 10px solid var(--accent-color);
+    }
+    .correct::after {
+        content: '';
+        position: absolute;
+        width: 0; 
+        height: 0;
+        left: 0;
+        z-index: 500;
+        border-right: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+        border-left: 10px solid var(--success-color);
+    }
+    .chat-input {
+        bottom: 0;
+        position: absolute;
+        width: 90%;
+        margin: 5%;
     }
     form {
         display: flex;
+        width: 100%;
+        gap: 2px;
+        justify-content: space-between;
+    }
+    .guess-text {
+        flex: 1;
+        min-width: 0;
+        font-family: 'Balsamiq sans', sans-serif;
+        font-size: 1.2rem;
+        height: 2rem;
+        box-sizing: border-box;
+        background-color: var(--blank-color);
+        border: none;
+    }
+    .guess-submit {
+        display: none;
+    }
+    input[type="submit"] {
+        flex-shrink: 0; 
     }
     canvas {
         background-color: var(--textbox-color);
-        width: 100%;
-        height: 100%;
+        width: min(100%, 1000px);
+        height: min(100%, 600px);
+        overflow: hidden;
     }
 </style>
 <body>
     <div class="game-code">
-        <h1 class="game-code-text">Room's code</h1>
+        <h1 class="game-code-text">Room's code : <span id="roomCode">XH4S78</span></h1>
     </div>
     <div class="main-content">
         <div class="player-count-container">
-            <h1 class="player-count"><span>5</span> Players</h1>
+            <h1 class="player-count"><span id="playerCount">5</span> Players</h1>
         </div>
         <div class="main-container"> 
             <div class="play-container">
                 <div class="chat-container">
                     <div class="chat-message">
-                        <h1 class="player-name">Banshai (878pts)</h1>
-                        <h1 class="message-content">La muraille de Chine</h1>
+                        <div class="chat-content">
+                            <h1 class="player-name">Banshai (878pts)</h1>
+                            <h1 class="message-content">La muraille de Chine</h1>
+                        </div>
                     </div>
                     <div class="chat-message">
-                        <h1 class="player-name">Iki (197pts)</h1>
-                        <h1 class="message-content">Nourriture typique asiatique</h1>
+                        <div class="chat-content">
+                            <h1 class="player-name">Iki (197pts)</h1>
+                            <h1 class="message-content">Nourriture typique asiatique</h1>
+                        </div>
                     </div>
                     <div class="chat-message">
-                        <h1 class="player-name">Hocine (240pts)</h1>
-                        <h1 class="message-content">à trouvé la réponse !</h1>
+                        <div class="chat-content correct">
+                            <h1 class="player-name">Hocine (240pts)</h1>
+                            <h1 class="message-content">à trouvé la réponse !</h1>
+                        </div>
                     </div>
                     <div class="chat-input">
-                        <h1 class="chat-text-header">Type your guess here :</h1>
+                        <h1 class="chat-text-header">Type your guess :</h1>
                         <form method="POST" action="sendmessage">
-                            <input type="textbox" name="guess">
+                            <input type="textbox" name="guess" class="guess-text">
                             <input type="hidden" name="code" value="xxxxxx">
-                            <input type="submit" value=">">
+                            <input type="submit" value=">" class="guess-submit">
                         </form>
                     </div>
                 </div>
@@ -153,9 +224,17 @@
         let isDrawing = false;
         let xPos = 0;
         let yPos = 0;
+        function getCorrectPosition(mouseEvent) {
+            let rectangle = canvas.getBoundingClientRect();
+            return {
+                xPos: (mouseEvent.clientX - rectangle.left) * canvas.width / rectangle.width,
+                yPos: (mouseEvent.clientY - rectangle.top) * canvas.height / rectangle.height
+            };
+        }
         function initialiseMouse(mouseEvent) {
-            xPos = mouseEvent.offsetX;
-            yPos = mouseEvent.offsetY;
+            let position = getCorrectPosition(mouseEvent);
+            xPos = position.xPos;
+            yPos = position.yPos;
             isDrawing = true;
         }
         function draw(mouseEvent) {
@@ -165,9 +244,11 @@
             canvasContext.beginPath();
             canvasContext.strokeStyle = "black";
             canvasContext.lineWidth = 5;
+            canvasContext.lineCap = "round";
             canvasContext.moveTo(xPos, yPos);
-            xPos = mouseEvent.offsetX;
-            yPos = mouseEvent.offsetY;
+            let position = getCorrectPosition(mouseEvent);
+            xPos = position.xPos;
+            yPos = position.yPos; 
             canvasContext.lineTo(xPos, yPos);
             canvasContext.stroke();
             canvasContext.closePath();

@@ -1,6 +1,7 @@
 package com.narbaniki.timescrimble;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -46,7 +47,7 @@ public class Facade {
     }
 
     @PostMapping("/disconnect")
-    public void disconnect(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException {
+    public void disconnect(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
         session.invalidate();
     }
 
@@ -56,7 +57,7 @@ public class Facade {
         Optional<Utilisateur> userOpt = utilisateurRepository.findByApiToken(apiToken);
         if (userOpt.isEmpty()) {
             System.out.println("Aucun utilisateur ne possède ce token.");
-            throw new IllegalArgumentException("Pas d'utilisateur pour ce token.");
+            return Collections.emptyMap();
         }
         Utilisateur user = userOpt.get();
         HashMap<String, String> infos = new HashMap<>();
