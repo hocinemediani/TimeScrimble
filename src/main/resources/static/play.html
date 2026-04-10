@@ -20,18 +20,21 @@
         flex-direction: row-reverse;
     }
     .main-content {
-        width: 90%;
-        margin-left: 5%;
+        width: 95%;
+        margin-left: 2.5%;
     }
     .player-count-container {
         display: flex;
         flex-direction: column;
         align-items: center;
+        margin-bottom: 1%;
     }
     .main-container {
         display: flex;
         min-height: 80vh;
+        max-height: 80vh;
         height: 100%;
+        gap: 1%;
     }
     .play-container {
         display: flex;
@@ -61,6 +64,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        height: fit-content;
     }
     .drawing-container {
         display: flex;
@@ -73,8 +77,12 @@
         width: 50%;
     }
     .side-bar {
-        width: 12.5%;
+        background-color: var(--secondary-color);
+        width: max(10%, 100px);
         padding: 1%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
     .message-content {
         font-size: 0.9rem;
@@ -130,6 +138,9 @@
         gap: 2px;
         justify-content: space-between;
     }
+    .player-count {
+        font-weight: 500;
+    }
     .guess-text {
         flex: 1;
         min-width: 0;
@@ -143,6 +154,34 @@
     .guess-submit {
         display: none;
     }
+    .tool {
+        width: min(60%, 60px);
+        aspect-ratio: 1;
+        margin-bottom: 5%;
+        padding: 5%;
+        border-radius: 10px;
+        background-color: var(--other-color);
+        background-size: 90%;
+        background-repeat: no-repeat;
+        background-position: center;
+        border: none;
+        cursor: pointer;
+    }
+    #eraser {
+        background-image: url("eraser.png");
+    }
+    #pencil {
+        background-image: url("pencil.png");
+    }
+    #bucket {
+        background-image: url("bucket.png")
+    }
+    .tools {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
     input[type="submit"] {
         flex-shrink: 0; 
     }
@@ -151,7 +190,30 @@
         width: min(100%, 1000px);
         height: min(100%, 600px);
         overflow: hidden;
+        cursor: crosshair;
     }
+    .colors {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .color-button {
+        width: 32%;
+        aspect-ratio: 1;
+        border: 1px solid white;
+        cursor: pointer;
+    }
+    .black {background-color: black;}
+    .blue {background-color: blue;}
+    .red {background-color: red;}
+    .green {background-color: green;}
+    .pink {background-color: pink;}
+    .purple {background-color: purple;}
+    .yellow {background-color: yellow;}
+    .orange {background-color: orange;}
+    .brown {background-color: brown;}
+    .darkgreen {background-color: darkgreen;}
+    .cyan {background-color: cyan;}
+    .grey{background-color: grey;}
 </style>
 <body>
     <div class="game-code">
@@ -202,10 +264,28 @@
             <div class="side-bar">
                 <div class="tools-container">
                     <h1 class="tools-text">Tools</h1>
-                    <div class="tools"></div>
+                    <div class="tools">
+                        <button class="tool" id="eraser" onclick="erase()" onKeyDown="erase()"></button>
+                        <button class="tool" id="pencil" onclick="pencil()" onKeyDown="pencil()"></button>
+                        <button class="tool" id="bucket" onclick="bucket()" onKeyDown="bucket()"></button>
+                    </div>
                 </div>
                 <div class="colors-container">
                     <h1 class="colors-text">Colors</h1>
+                    <div class="colors">
+                        <button class="color-button black" onclick="changeColor(this)"></button>
+                        <button class="color-button blue" onclick="changeColor(this)"></button>
+                        <button class="color-button red" onclick="changeColor(this)"></button>
+                        <button class="color-button purple" onclick="changeColor(this)"></button>
+                        <button class="color-button green" onclick="changeColor(this)"></button>
+                        <button class="color-button yellow" onclick="changeColor(this)"></button>
+                        <button class="color-button orange" onclick="changeColor(this)"></button>
+                        <button class="color-button brown" onclick="changeColor(this)"></button>
+                        <button class="color-button pink" onclick="changeColor(this)"></button>
+                        <button class="color-button darkgreen" onclick="changeColor(this)"></button>
+                        <button class="color-button cyan" onclick="changeColor(this)"></button>
+                        <button class="color-button grey" onclick="changeColor(this)"></button>
+                    </div>
                 </div>
                 <div class="timer-container">
                     <img class="timer-image" src="timer.png" alt="Timer">
@@ -216,11 +296,31 @@
     </div>
 </body>
 <script>
+    let canvas = document.getElementById("canvas");
+    let canvasContext = canvas.getContext("2d");
+    let previousColor;
+    function erase() {
+        previousColor = canvasContext.strokeStyle;
+        canvasContext.strokeStyle = "white";
+        canvasContext.lineWidth = 20;
+    }
+    function pencil() {
+        canvasContext.strokeStyle = previousColor;
+        canvasContext.lineWidth = 5;
+    }
+    function bucket() {
+        
+    }
+    function changeColor(button) {
+        canvasContext.lineWidth = 5;
+        canvasContext.strokeStyle = getComputedStyle(button).backgroundColor;
+        console.log(getComputedStyle(button).backgroundColor);
+    }
     window.addEventListener('load', function() {
-        let canvas = document.getElementById("canvas");
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
-        let canvasContext = canvas.getContext("2d");
+        canvasContext.strokeStyle = "black";
+        canvasContext.lineWidth = 5;
         let isDrawing = false;
         let xPos = 0;
         let yPos = 0;
@@ -242,8 +342,6 @@
                 return;
             }
             canvasContext.beginPath();
-            canvasContext.strokeStyle = "black";
-            canvasContext.lineWidth = 5;
             canvasContext.lineCap = "round";
             canvasContext.moveTo(xPos, yPos);
             let position = getCorrectPosition(mouseEvent);
