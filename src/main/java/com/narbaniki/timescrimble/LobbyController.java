@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,25 +22,30 @@ public class LobbyController {
     private LobbyService lobbyService;
     
     @PostMapping("/create")
-    public void createRoom(HttpServletRequest request, HttpServletResponse response,
+    public ResponseEntity<String> createRoom(HttpServletRequest request, HttpServletResponse response,
                             @RequestParam(value = "nom", required = true) String nom,
                             @RequestParam(value = "nbMax", required = true) Integer nb,
                             @RequestParam(value = "isPrivate", required = true) Boolean priv,
                             HttpSession session) throws IOException {
         try {
             Utilisateur user = (Utilisateur) session.getAttribute("user");
-            lobbyService.create(nom, nb, priv, user);
-            response.sendRedirect("lobby.html");
+            String code = lobbyService.create(nom, nb, priv, user);
+            return ResponseEntity.ok(code);
         } catch (IllegalArgumentException e) {
-            response.sendRedirect("lobby.html");
-    }
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
     
-    @GetMapping("/join")
-    public void joinRoom(HttpServletRequest request, HttpServletResponse response,
-                         @RequestParam String code, HttpSession session) {
+    @PostMapping("/join")
+    public ResponseEntity<String> joinRoom(HttpServletRequest request, HttpServletResponse response,
+                         @RequestParam String code, HttpSession session) throws IOException {
+        try {
         Utilisateur user = (Utilisateur) session.getAttribute("user");
         lobbyService.join(code, user);
+        return ResponseEntity.ok(code);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }  
     }
 
     @GetMapping("/publiques")

@@ -151,7 +151,7 @@
         <div class="box-wrapper">
             <h2>Créer une partie privée / publique</h2>
             <div class="container">
-                <form action="create" method="POST">
+                <form id="formCreationPartie">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span class="label-text" style="white-space: nowrap; margin-bottom: 0;">Nom de la partie :</span>
@@ -183,7 +183,7 @@
         <div class="box-wrapper">
             <h2>Rejoindre une partie</h2>
             <div class="container" style="display: flex; flex-direction: column;">
-                <form action="join" method="GET">
+                <form id="formRejoindrePartie">
                     <span class="label-text">Code de la partie :</span>
                     <input type="text" name="code" class="input-field" placeholder="Ex: AX789" maxlength="6" required>
                     <button type="submit" class="btn-action" style="width: 100%; margin-top: 2%;">Rejoindre</button>
@@ -201,28 +201,7 @@
                             <th style="text-align: right;"></th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr class="impair">
-                            <td>Banshai's room</td>
-                            <td>3/7</td>
-                            <td style="text-align: right;">
-                                <a class="btn-rejoindre">Rejoindre</a>
-                            </td>
-                        </tr>
-                        <tr class="pair">
-                            <td>Hocine's room</td>
-                            <td>6/7</td>
-                            <td style="text-align: right;">
-                                <a class="btn-rejoindre">Rejoindre</a>
-                            </td>
-                        </tr>
-                        <tr class="impair">
-                            <td>Iki's room</td>
-                            <td>2/7</td>
-                            <td style="text-align: right;">
-                                <a class="btn-rejoindre">Rejoindre</a>
-                            </td>
-                        </tr>
+                    <tbody id="publicRoomsTable">
                     </tbody>
                 </table>
             </div>
@@ -231,7 +210,7 @@
 </body>
 <script>
     async function disconnectUser() {
-        await fetch("http://timescrimble.local:8080/disconnect", {
+        await fetch("/disconnect", {
             method: "POST",
             credentials: "include"
         });
@@ -239,7 +218,7 @@
     }
     async function fetchUserInfo() {
         try {
-            const infos = await fetch("http://timescrimble.local:8080/userinfo", {
+            const infos = await fetch("/userinfo", {
                 method: "GET",
                 credentials: "include"
             });
@@ -257,5 +236,78 @@
         }
     }
     fetchUserInfo();
+    document.getElementById('formCreationPartie').addEventListener('submit', async function(event) {
+        event.preventDefault(); 
+        const formData = new FormData(this);
+
+        try {
+            const response = await fetch('/create', {
+                method: 'POST',
+                body: formData 
+            });
+
+            if (response.ok) {
+                const roomCode = await response.text();
+                window.location.href = `/room/code/${roomCode}`;
+            } else {
+                const errorMessage = await response.text();
+                alert("Erreur : " + errorMessage); 
+            }
+        } catch (error) {
+            console.error("Erreur réseau :", error);
+        }
+    });
+    document.getElementById('formRejoindrePartie').addEventListener('submit', async function(event) {    
+        event.preventDefault(); 
+        const formData = new FormData(this);
+        try {
+            const response = await fetch('/join', {
+                method: 'POST',
+                body: formData 
+            });
+
+            if (response.ok) {
+                const roomCode = await response.text();
+                window.location.href = `/room/code/${roomCode}`;
+            } else {
+                const errorMessage = await response.text();
+                alert("Erreur : " + errorMessage); 
+            }
+        } catch (error) {
+            console.error("Erreur réseau :", error);
+        }
+    });
+    async function refreshPublicRooms() {
+        try {
+            const response = await fetch('/publiques');
+            if (!response.ok) throw new Error("Erreur lors du chargement des parties");
+            const rooms = await response.json();
+            const tableBody = document.getElementById('publicRoomsTable');
+            tableBody.innerHTML = '';
+            rooms.forEach((room, index) => {
+                const isImpair = index % 2 === 0;
+                const rowClass = isImpair ? 'impair' : 'pair';
+                const nbJoueursActuels = room.joueurs ? room.joueurs.length : 0;
+                const row = `
+                    <tr class="${rowClass}">
+                        <td>${room.nom}</td>
+                        <td>${nbJoueursActuels}/${room.nbJoueursMax}</td>
+                        <td style="text-align: right;">
+                            <a href="#" class="btn-rejoindre" onclick="rejoindreParCode('${room.code}')">Rejoindre</a>
+                        </td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+        } catch (error) {
+            console.error("Impossible de charger les parties publiques :", error);
+        }
+    }
+    function rejoindreParCode(code) {
+        const input = document.querySelector('input[name="code"]');
+        input.value = code;
+        document.getElementById('formRejoindrePartie').dispatchEvent(new Event('submit'));
+    }
+    refreshPublicRooms();
 </script>
 </html>

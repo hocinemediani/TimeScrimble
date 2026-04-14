@@ -16,7 +16,7 @@ public class LobbyService {
         return this.partieRepository.findAllByEstPriveeFalse();
     }
 
-    public void create(String nom, Integer nb, Boolean priv, Utilisateur user) {
+    public String create(String nom, Integer nb, Boolean priv, Utilisateur user) {
         Partie partie = new Partie();
         partie.setNom(nom);
         if (nb < 2) {
@@ -30,6 +30,7 @@ public class LobbyService {
         Joueur joueur = new Joueur(user, partie);
         partie.getJoueurs().add(joueur);
         partieRepository.save(partie);
+        return partie.getCode();
     }
 
     public void join(String code, Utilisateur user) {
@@ -45,6 +46,10 @@ public class LobbyService {
             Joueur joueur = new Joueur(user, partie);
             partie.getJoueurs().add(joueur);
             partieRepository.save(partie);
+    }
+
+    public Partie getPartie(String code) {
+        return partieRepository.findByCode(code);
     }
     
 }
