@@ -40,7 +40,7 @@ public class AuthService {
             System.out.println("Le mot de passe doit contenir au moin un caractère.");
             throw new IllegalArgumentException("Le mot de passe doit avoir au moins un caractère.");
         }
-        Utilisateur newUtilisateur = new Utilisateur(pseudo, passwordEncoder.encode(motDePasse));
+        Utilisateur newUtilisateur = new Utilisateur(pseudo, passwordEncoder.encode(motDePasse), false);
         newUtilisateur.setApiToken(UUID.randomUUID().toString());
         return utilisateurRepository.save(newUtilisateur);
     }
@@ -72,7 +72,7 @@ public class AuthService {
      * @param pseudo
      * @return l'utilisateur 
      */
-    public void connectGuest(String pseudo) {
+    public Utilisateur connectGuest(String pseudo) {
         if (utilisateurRepository.existsByUsername(pseudo)) {
             System.out.println("Ce pseudonyme est déjà utilisé.");
             throw new IllegalArgumentException("Ce pseudo est déjà utilisé.");
@@ -81,5 +81,7 @@ public class AuthService {
             System.out.println("Le pseudonyme doit contenir entre 1 et 20 caractères.");
             throw new IllegalArgumentException("Le pseudo doit avoir au minimum un caractère et au maximum 20.");
         }
+        Utilisateur utilisateurGuest = new Utilisateur(pseudo, "guest", true);
+        return utilisateurRepository.save(utilisateurGuest);
     }
 }

@@ -59,16 +59,23 @@ public class Utilisateur implements Serializable {
     @Column(nullable = false)
     private int victoires;
 
+    /**
+     * Indique si l'utilisateur est invité ou connecté.
+     */
+    @Column(nullable = false)
+    private Boolean isInvite;
+
     // Constructeurs
 
     protected Utilisateur() {}
 
-    public Utilisateur(String pseudo, String motDePasse) {
+    public Utilisateur(String pseudo, String motDePasse, Boolean isInvite) {
         this.username = pseudo;
         this.motDePasse = motDePasse;
         this.apiToken = "";
         this.totalParties = 0;
         this.victoires = 0;
+        this.isInvite = isInvite;
     }
 
 
@@ -120,6 +127,10 @@ public class Utilisateur implements Serializable {
 
     public int getVictoires() { 
         return victoires;
+    }
+
+    public Boolean getisInvite() { 
+        return isInvite;
     }
 
 }

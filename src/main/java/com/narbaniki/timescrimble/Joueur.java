@@ -117,18 +117,7 @@ public class Joueur {
         this.utilisateur = utilisateur;
         this.pseudo = utilisateur.getPseudo();
         this.partie = partie;
-        this.estInvite = false;
-    }
- 
-    /**
-     * Crée un joueur invité (sans compte).
-     * Le pseudo est saisi librement.
-     */
-    public Joueur(String pseudo, Partie partie) {
-        this.pseudo = pseudo;
-        this.utilisateur = null;
-        this.partie = partie;
-        this.estInvite = true;
+        this.estInvite = utilisateur.getisInvite();
     }
  
  
