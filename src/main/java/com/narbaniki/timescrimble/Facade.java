@@ -88,8 +88,9 @@ public class Facade {
                     response.sendRedirect("lobby");
                 }
                 case "guest" -> {
-                    authService.connectGuest(username);
+                    Utilisateur utilisateur = authService.connectGuest(username);
                     session.setAttribute("guestName", username);
+                    session.setAttribute("apiToken", utilisateur.getApiToken());
                     response.sendRedirect("lobby");
                 }
                 default -> response.sendRedirect("login");
