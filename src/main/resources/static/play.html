@@ -72,6 +72,8 @@
         align-items: center;
         position: relative;
         overflow: hidden;
+        width: 100%;
+        height: 100%;
     }
     .timer-image {
         width: 50%;
@@ -187,8 +189,8 @@
     }
     canvas {
         background-color: var(--textbox-color);
-        width: min(100%, 1000px);
-        height: min(100%, 600px);
+        min-width: min(100%, 1000px);
+        min-height: min(100%, 1000px);
         overflow: hidden;
         cursor: crosshair;
     }
