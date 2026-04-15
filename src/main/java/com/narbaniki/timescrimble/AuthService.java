@@ -82,6 +82,7 @@ public class AuthService {
             throw new IllegalArgumentException("Le pseudo doit avoir au minimum un caractère et au maximum 20.");
         }
         Utilisateur utilisateurGuest = new Utilisateur(pseudo, "guest", true);
+        utilisateurGuest.setApiToken(UUID.randomUUID().toString());
         return utilisateurRepository.save(utilisateurGuest);
     }
 }
