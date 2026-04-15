@@ -19,6 +19,8 @@ import jakarta.servlet.http.HttpSession;
 public class LobbyController {
 
     @Autowired
+    private UtilisateurRepository userRepository;
+    @Autowired
     private LobbyService lobbyService;
     
     @PostMapping("/create")
@@ -28,7 +30,7 @@ public class LobbyController {
                             @RequestParam(value = "isPrivate", required = true) Boolean priv,
                             HttpSession session) throws IOException {
         try {
-            Utilisateur user = (Utilisateur) session.getAttribute("user");
+            Utilisateur user = userRepository.findByApiToken((String) session.getAttribute("apiToken")).get();
             String code = lobbyService.create(nom, nb, priv, user);
             return ResponseEntity.ok(code);
         } catch (IllegalArgumentException e) {
@@ -40,7 +42,7 @@ public class LobbyController {
     public ResponseEntity<String> joinRoom(HttpServletRequest request, HttpServletResponse response,
                          @RequestParam String code, HttpSession session) throws IOException {
         try {
-        Utilisateur user = (Utilisateur) session.getAttribute("user");
+        Utilisateur user = userRepository.findByApiToken((String) session.getAttribute("apiToken")).get();
         lobbyService.join(code, user);
         return ResponseEntity.ok(code);
         } catch (IllegalArgumentException e) {

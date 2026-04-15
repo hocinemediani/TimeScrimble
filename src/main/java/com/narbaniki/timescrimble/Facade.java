@@ -77,22 +77,19 @@ public class Facade {
             switch(action.toLowerCase()) {
                 case "sign-in" -> {
                     Utilisateur utilisateur = authService.connect(username, password);
-                    session.setAttribute("user", utilisateur);
                     session.setAttribute("username", utilisateur.getPseudo());
                     session.setAttribute("apiToken", utilisateur.getApiToken());
                     response.sendRedirect("lobby");
                 }
                 case "sign-up" -> {
                     Utilisateur utilisateur = authService.register(username, password);
-                    session.setAttribute("user", utilisateur);
                     session.setAttribute("username", utilisateur.getPseudo());
                     session.setAttribute("apiToken", utilisateur.getApiToken());
                     response.sendRedirect("lobby");
                 }
                 case "guest" -> {
-                    Utilisateur utilisateurguest = authService.connectGuest(username);
+                    authService.connectGuest(username);
                     session.setAttribute("guestName", username);
-                    session.setAttribute("user", utilisateurguest);
                     response.sendRedirect("lobby");
                 }
                 default -> response.sendRedirect("login");
