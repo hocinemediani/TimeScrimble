@@ -243,7 +243,7 @@ public class Partie {
         return dateCreation;
     }
 
-    public List<Joueur> getJoueurs() { 
+    public List<Joueur> getJoueurs() {
         return joueurs; 
     }
 

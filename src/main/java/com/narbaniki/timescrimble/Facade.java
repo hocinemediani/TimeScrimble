@@ -26,29 +26,53 @@ public class Facade {
     private AuthService authService;
     @Autowired
     private UtilisateurRepository utilisateurRepository;
+    @Autowired
+    private PartieRepository partieRepository;
     
     @GetMapping("/")
-    public void home(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("login.html").forward(request, response);
+    public void home(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException, ServletException {
+        if (session.getAttribute("username") != null || session.getAttribute("guestName") != null) {
+            lobby(request, response, session);
+        } else {
+            login(request, response, session);
+        }
     }
 
     @GetMapping("/login")
-    public void login(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        home(request, response);
+    public void login(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException, ServletException {
+        if (session.getAttribute("username") != null || session.getAttribute("guestName") != null) {
+            lobby(request, response, session);
+        } else {
+            request.getRequestDispatcher("login.html").forward(request, response);
+        }
     }
 
     @GetMapping("/lobby")
-    public void lobby(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException {
+    public void lobby(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException, ServletException {
         if (session.getAttribute("username") != null || session.getAttribute("guestName") != null) {
-            response.sendRedirect("lobby.html");
+            request.getRequestDispatcher("lobby.html").forward(request, response);
         } else {
-            response.sendRedirect("login");
+            login(request, response, session);
         }
     }
 
     @PostMapping("/disconnect")
     public void disconnect(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
         session.invalidate();
+    }
+
+    @GetMapping("/roominfo")
+    public Map<String, String> roomInfo(@RequestParam String code, HttpServletRequest request, HttpServletResponse response) {
+        Partie partie = partieRepository.findByCode(code);
+        if (partie == null) {
+            System.out.println("Aucune partie ne possède ce code.");
+            return Collections.emptyMap();
+        }
+        HashMap<String, String> infos = new HashMap<>();
+        infos.put("code", code);
+        infos.put("playerCount", Integer.toString(partie.getJoueurs().size()));
+        infos.put("name", partie.getNom());
+        return infos;
     }
 
     @GetMapping("/userinfo")

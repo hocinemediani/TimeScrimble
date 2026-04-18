@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/styles.css">
-    <title>Playroom</title>
+    <link rel="icon" type="image/x-icon" href="/logo.png">
+    <title>Undefined</title>
 </head>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Balsamiq+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
@@ -219,11 +220,11 @@
 </style>
 <body>
     <div class="game-code">
-        <h1 class="game-code-text">Room's code : <span id="roomCode">XH4S78</span></h1>
+        <h1 class="game-code-text">Room's code : <span id="roomCode">undefined</span></h1>
     </div>
     <div class="main-content">
         <div class="player-count-container">
-            <h1 class="player-count"><span id="playerCount">5</span> Players</h1>
+            <h1 class="player-count"><span id="playerCount">undefined</span> Players</h1>
         </div>
         <div class="main-container"> 
             <div class="play-container">
@@ -298,6 +299,22 @@
     </div>
 </body>
 <script>
+    async function fetchRoomInfo() {
+        let roomCode = new URLSearchParams(globalThis.location.search).get("code");
+        let fullURL = "/roominfo"+ "?code=" + roomCode;
+        try {
+            let response = await fetch(fullURL, {
+                method: 'GET'
+            });
+            let infos = await response.json();
+            document.getElementById("roomCode").innerText = roomCode;
+            document.getElementById("playerCount").innerText = infos.playerCount;
+            document.title = infos.name;
+        } catch (error) {
+            console.error("Problème lors de la récupération des informations de la room : ", error);
+        }
+    }
+    fetchRoomInfo();
     let canvas = document.getElementById("canvas");
     let canvasContext = canvas.getContext("2d");
     let previousColor;

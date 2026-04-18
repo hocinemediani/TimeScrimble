@@ -1,6 +1,7 @@
 package com.narbaniki.timescrimble;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,9 +29,13 @@ public class LobbyController {
                             @RequestParam(value = "nom", required = true) String nom,
                             @RequestParam(value = "nbMax", required = true) Integer nb,
                             @RequestParam(value = "isPrivate", required = true) Boolean priv,
-                            HttpSession session) throws IOException {
+                            HttpSession session) {
         try {
-            Utilisateur user = userRepository.findByApiToken((String) session.getAttribute("apiToken")).get();
+            Optional<Utilisateur> userOpt = userRepository.findByApiToken((String) session.getAttribute("apiToken"));
+            if (userOpt.isEmpty()) {
+                throw new IllegalArgumentException("");
+            }
+            Utilisateur user = userOpt.get();
             String code = lobbyService.create(nom, nb, priv, user);
             return ResponseEntity.ok(code);
         } catch (IllegalArgumentException e) {

@@ -3,6 +3,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="/logo.png">
     <title>TimeScrimble - Lobby</title>
 </head>
 <style>
@@ -120,7 +121,6 @@
     .party-table th {
         background-color: var(--second-accent-color);
         padding: 10px;
-        text-align: left;
         border-bottom: 10px solid var(--secondary-color);
     }
     .party-table td {
@@ -137,15 +137,33 @@
         text-decoration: none;
         font-weight: bold;
     }
+    .room-name {
+        text-align: left;
+    }
+    .num-players {
+        text-align: center;
+    }
+    .refresh {
+        text-align: right;
+    }
+    .refresh-button {
+        background-color: transparent;
+        font-family: 'Balsamiq sans', sans-serif;
+        border: none;
+        color: white;
+        font-size: 1.3rem;
+        cursor: pointer;
+        font-weight: bold;
+    }
 </style>
 <body>
     <div class="header">
         <div class="user-info">
             Bonjour <span id="username">Undefined</span> ! 
-            (<span class="stats-win"><span id="wins">_</span>V /</span> 
+            (<span class="stats-win"><span id="wins">_</span>V </span> |
              <span class="stats-losses"><span id="losses">_</span>D</span>)
         </div>
-        <button class="btn-logout" onclick="disconnectUser()"">Déconnexion</button>
+        <button class="btn-logout" onclick="disconnectUser()">Déconnexion</button>
     </div>
     <div class="main-content">
         <div class="box-wrapper">
@@ -196,9 +214,9 @@
                 <table class="party-table">
                     <thead>
                         <tr>
-                            <th>Nom de la partie :</th>
-                            <th>Nombre de joueurs :</th>
-                            <th style="text-align: right;"></th>
+                            <th class="room-name">Nom de la partie :</th>
+                            <th class="num-players">Nombre de joueurs :</th>
+                            <th class="refresh"><button class="refresh-button" onclick="refreshPublicRooms()">Rafraichir</a></th>
                         </tr>
                     </thead>
                     <tbody id="publicRoomsTable">
@@ -243,12 +261,13 @@
         try {
             const response = await fetch('/create', {
                 method: 'POST',
-                body: formData 
+                body: formData,
+                credentials: "include"
             });
 
             if (response.ok) {
                 const roomCode = await response.text();
-                window.location.href = `/room/code/${roomCode}`;
+                globalThis.location.href = `/room?code=${roomCode}`;
             } else {
                 const errorMessage = await response.text();
                 alert("Erreur : " + errorMessage); 
@@ -263,12 +282,13 @@
         try {
             const response = await fetch('/join', {
                 method: 'POST',
-                body: formData 
+                body: formData,
+                credentials: "include"
             });
 
             if (response.ok) {
                 const roomCode = await response.text();
-                window.location.href = `/room/code/${roomCode}`;
+                globalThis.location.href = `/room?code=${roomCode}`;
             } else {
                 const errorMessage = await response.text();
                 alert("Erreur : " + errorMessage); 
