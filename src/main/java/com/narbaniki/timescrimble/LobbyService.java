@@ -26,7 +26,6 @@ public class LobbyService {
         }
         partie.setNbJoueursMax(nb);
         partie.setEstPrivee(priv);
-        partie.setMotADeviner("Ilian");
         Joueur joueur = new Joueur(user, partie);
         partie.getJoueurs().add(joueur);
         partieRepository.save(partie);

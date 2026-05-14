@@ -73,6 +73,7 @@ public class Joueur {
      * @Transient : pas stocké en base. Le socketId change à chaque reconnexion,
      * il n'a de sens que dans la mémoire du serveur en cours d'exécution.
      */
+    @Column(nullable = true)
     private String socketId;
  
     // Relations
@@ -147,6 +148,10 @@ public class Joueur {
     public void marquerCommeDevine() {
         this.aDevine = true;
     }
+
+    public void marquerCommeNonDevine() {
+        this.aDevine = false;
+    }
  
     /** Désigne ce joueur comme dessinateur pour la manche courante. */
     public void designerCommeDessinateur() {
@@ -188,6 +193,7 @@ public class Joueur {
     public String getSocketId() { 
         return socketId; 
     }
+    
     public void setSocketId(String socketId) { 
         this.socketId = socketId;
     }

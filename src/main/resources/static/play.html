@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="/styles.css">
     <link rel="icon" type="image/x-icon" href="/logo.png">
     <title>Undefined</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 </head>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Balsamiq+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
@@ -98,7 +100,20 @@
         width: 22%;
         background-color: var(--textbox-color);
         border-right: 3px dotted black;
-        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+    .messages-area {
+        flex-grow: 1;
+        overflow-y: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+    .chat-input {
+        width: 90%;
+        margin: 5%;
+        flex-shrink: 0;
     }
     .correct {
         background-color: var(--success-color);
@@ -128,12 +143,6 @@
         border-right: 10px solid transparent;
         border-bottom: 10px solid transparent;
         border-left: 10px solid var(--success-color);
-    }
-    .chat-input {
-        bottom: 0;
-        position: absolute;
-        width: 90%;
-        margin: 5%;
     }
     form {
         display: flex;
@@ -225,41 +234,42 @@
     <div class="main-content">
         <div class="player-count-container">
             <h1 class="player-count"><span id="playerCount">undefined</span> Players</h1>
+            <!-- Bouton de merde, a changer quand l'écran de la maquette sera fait. -->
+            <button id="btn-start" onclick="startGame()" style="display: none; margin-top: 10px; padding: 5px 15px; cursor: pointer;">Start the game</button>
         </div>
         <div class="main-container"> 
             <div class="play-container">
+                
                 <div class="chat-container">
-                    <div class="chat-message">
-                        <div class="chat-content">
-                            <h1 class="player-name">Banshai (878pts)</h1>
-                            <h1 class="message-content">La muraille de Chine</h1>
+                    
+                    <div id="messages-area" class="messages-area">
+                        <div class="chat-message">
+                            <div class="chat-content">
+                                <h1 class="player-name">Banshai (<span id="player1-points">878</span>pts)</h1>
+                                <h1 class="message-content">La muraille de Chine</h1>
+                            </div>
+                        </div>
+                        <div class="chat-message">
+                            <div class="chat-content correct">
+                                <h1 class="player-name">Hocine (<span id="player2-points">240</span>pts)</h1>
+                                <h1 class="message-content">à trouvé la réponse !</h1>
+                            </div>
                         </div>
                     </div>
-                    <div class="chat-message">
-                        <div class="chat-content">
-                            <h1 class="player-name">Iki (197pts)</h1>
-                            <h1 class="message-content">Nourriture typique asiatique</h1>
-                        </div>
-                    </div>
-                    <div class="chat-message">
-                        <div class="chat-content correct">
-                            <h1 class="player-name">Hocine (240pts)</h1>
-                            <h1 class="message-content">à trouvé la réponse !</h1>
-                        </div>
-                    </div>
+
                     <div class="chat-input">
                         <h1 class="chat-text-header">Type your guess :</h1>
-                        <form method="POST" action="sendmessage">
-                            <input type="textbox" name="guess" class="guess-text">
+                        <form>
+                            <input type="text" name="guess" class="guess-text" id="message">
                             <input type="hidden" name="code" value="xxxxxx">
-                            <input type="submit" value=">" class="guess-submit">
+                            <input type="submit" value=">" class="guess-submit" onclick="sendChatMessage(event)">
                         </form>
                     </div>
                 </div>
                 <div class="drawing-container">
                     <canvas id="canvas"></canvas>
                     <div class="word-guess">
-                        <h1 class="word-guess-text">_ _ _ _ _ _ _ _ </h1>
+                        <h1 class="word-guess-text">_ _ _ _ _ _ _ _</h1>
                         <h1 class="word-guess-letter-count">8</h1>
                     </div>
                 </div>
@@ -299,8 +309,14 @@
     </div>
 </body>
 <script>
+    /* Initialisation */
+    let roomCode;
+    let username;
+    let playerCount;
+    let segmentBuffer = [];
+    document.querySelectorAll('.chat-message').forEach(msg => msg.remove());
     async function fetchRoomInfo() {
-        let roomCode = new URLSearchParams(globalThis.location.search).get("code");
+        roomCode = new URLSearchParams(globalThis.location.search).get("code");
         let fullURL = "/roominfo"+ "?code=" + roomCode;
         try {
             let response = await fetch(fullURL, {
@@ -309,12 +325,140 @@
             let infos = await response.json();
             document.getElementById("roomCode").innerText = roomCode;
             document.getElementById("playerCount").innerText = infos.playerCount;
+            playerCount = infos.playerCount
+            if (playerCount <= 1) {
+                document.getElementById("btn-start").style.display = "block";
+            }
             document.title = infos.name;
         } catch (error) {
             console.error("Problème lors de la récupération des informations de la room : ", error);
         }
     }
     fetchRoomInfo();
+    async function fetchUserInfo() {
+        try {
+            const infos = await fetch("/userinfo", {
+                method: "GET",
+                credentials: "include"
+            });
+            if (!infos.ok) {
+                console.error("GROS PROBLEME !!! Statut HTTP :", infos.status);
+                globalThis.location.href = "/login";
+                return;
+            }
+            const userInfos = await infos.json();
+            username = userInfos.username;
+        } catch (error) {
+            console.error("Problème de connexion à l'API : ", error)
+        }
+    }
+    fetchUserInfo();
+
+    /* Connexion socket pour chat et traits. */
+    const socket = new SockJS('/ws');
+    const stompClient = Stomp.over(socket);
+    stompClient.connect({}, function (frame) {
+        console.log('Connection au serveur établie.');
+        const joinMessage = {
+            pseudo: username,
+            contenu: "",
+            type: "JOIN"
+        };
+        stompClient.send("/app/room/" + roomCode + "/chat", {}, JSON.stringify(joinMessage));
+        stompClient.subscribe('/topic/room/' + roomCode + '/draw', function (msg) {
+            const data = JSON.parse(msg.body);
+            drawReceivedLines(data.lignes);
+        });
+        /* Pour traiter le début et la fin (afficher les écrans et changer la logique. */
+        stompClient.subscribe('/topic/room/' + roomCode + '/status', function(msg) {
+            handleStatusUpdate(JSON.parse(msg.body));
+        });
+        stompClient.subscribe('/topic/room/' + roomCode + '/secret/' + username, function(msg) {
+            const data = JSON.parse(msg.body);
+            document.querySelector(".word-guess-text").innerText = data.mot;
+        });
+        stompClient.subscribe('/topic/room/' + roomCode + '/chat', function (message) {
+            const data = JSON.parse(message.body);
+            handleMessage(data);
+        });
+        stompClient.subscribe('/topic/room/' + roomCode + '/requestDrawing/' + username, function (msg) {
+            const history = JSON.parse(msg.body);
+            history.forEach(drawMsg => {
+                drawReceivedLines(drawMsg.lignes);
+            });
+        });
+        stompClient.send("/app/room/" + roomCode + "/requestHistory", {}, username);
+    });
+    function handleStatusUpdate(data) {
+        if (data.type === "DEBUT_MANCHE") {
+            const isDessinateur = (data.dessinateur === username);
+            canvas.style.pointerEvents = isDessinateur ? "auto" : "none";
+            document.getElementById("message").disabled = isDessinateur;
+            document.getElementById("message").placeholder = isDessinateur ? "You're drawing !" : "Type in your guess";
+            if (!isDessinateur) {
+                document.querySelector(".word-guess-text").innerText = "_ ".repeat(data.tailleMot);
+            }
+            document.querySelector(".word-guess-letter-count").innerText = data.tailleMot;
+        }
+    }
+    function handleMessage(data) {
+        if (data.type === 'SUCCES' || data.type === 'CHAT') {
+            addMessageToChat(data);
+        }
+        if (data.type === 'JOIN') {
+            if (data.pseudo != username) {
+                playerCount++;
+            }
+            document.getElementById("playerCount").innerText = playerCount;
+        }
+        if (data.type === 'LEAVE') {
+            playerCount--;
+            document.getElementById("playerCount").innerText = playerCount;
+        }
+    }
+    function addMessageToChat(data) {
+        const messagesArea = document.getElementById('messages-area'); // On cible la nouvelle zone
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message';
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'chat-content';
+        if (data.type === 'SUCCES') {
+            contentDiv.classList.add('correct');
+        }
+        const nameH1 = document.createElement('h1');
+        nameH1.className = 'player-name';
+        nameH1.textContent = data.pseudo;
+        const textH1 = document.createElement('h1');
+        textH1.className = 'message-content';
+        textH1.textContent = data.contenu;
+        contentDiv.appendChild(nameH1);
+        contentDiv.appendChild(textH1);
+        messageDiv.appendChild(contentDiv);
+        messagesArea.appendChild(messageDiv);
+        while (messagesArea.scrollHeight > messagesArea.clientHeight) {
+            messagesArea.firstChild.remove();
+        }
+    }
+    function sendChatMessage() {
+        event.preventDefault();
+        const messageToSend = {
+            pseudo: username,
+            contenu: document.getElementById("message").value,
+            type: "CHAT"
+        };
+        stompClient.send("/app/room/" + roomCode + "/chat", {}, JSON.stringify(messageToSend));
+        document.getElementById("message").value = "";
+    }
+    function startGame() {
+        if (stompClient && stompClient.connected) {
+            // On envoie un signal au contrôleur Spring
+            stompClient.send("/app/room/" + roomCode + "/start", {}, JSON.stringify({}));
+            // Optionnel : cacher le bouton une fois cliqué
+            document.getElementById("btn-start").style.display = "none";
+        }
+    }
+
+    /* Dessin sur canvas. */
     let canvas = document.getElementById("canvas");
     let canvasContext = canvas.getContext("2d");
     let previousColor;
@@ -335,7 +479,18 @@
         canvasContext.strokeStyle = getComputedStyle(button).backgroundColor;
         console.log(getComputedStyle(button).backgroundColor);
     }
+    function drawReceivedLines(lines) {
+        lines.forEach(segment => {
+            canvasContext.beginPath();
+            canvasContext.strokeStyle = segment.couleur;
+            canvasContext.lineWidth = segment.epaisseur;
+            canvasContext.moveTo(segment.x1, segment.y1);
+            canvasContext.lineTo(segment.x2, segment.y2);
+            canvasContext.stroke();
+        });
+    }
     window.addEventListener('load', function() {
+        canvas.style.pointerEvents = "none";
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
         canvasContext.strokeStyle = "black";
@@ -363,12 +518,21 @@
             canvasContext.beginPath();
             canvasContext.lineCap = "round";
             canvasContext.moveTo(xPos, yPos);
+            let [lastX, lastY] = [xPos, yPos];
             let position = getCorrectPosition(mouseEvent);
             xPos = position.xPos;
             yPos = position.yPos; 
             canvasContext.lineTo(xPos, yPos);
             canvasContext.stroke();
             canvasContext.closePath();
+            segmentBuffer.push({
+                x1: lastX,
+                y1: lastY,
+                x2: xPos,
+                y2: yPos,
+                couleur: canvasContext.strokeStyle,
+                epaisseur: canvasContext.lineWidth
+            });
         }
         function endDrawing(mouseEvent) {
             draw(mouseEvent);
@@ -380,5 +544,15 @@
         canvas.addEventListener("mousemove", draw);
         canvas.addEventListener("mouseup", endDrawing);
     });
+
+    /* Envoi des tracés. */
+    setInterval(() => {
+        if (segmentBuffer.length > 0 && stompClient && stompClient.connected) {
+            stompClient.send("/app/room/" + roomCode + "/draw", {}, JSON.stringify({
+                lignes: segmentBuffer,
+                pseudo: username}));
+            segmentBuffer = [];
+        }
+    }, 100);
 </script>
 </html>

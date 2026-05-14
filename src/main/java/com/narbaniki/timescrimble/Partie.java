@@ -13,9 +13,12 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -98,10 +101,10 @@ public class Partie {
     /**
      * Mot à deviner
      */
-    @Column(nullable=false)
-    private String motADeviner;
+    @Column(nullable=true)
+    private String motADeviner = "";
 
-    // Hooks JPA
+    private int indexDessinateurActuel = 0;
 
     @PrePersist
     private void preCreation() {
@@ -124,6 +127,16 @@ public class Partie {
         this.nom = nom;
         this.estPrivee = estPrivee;
         this.nbJoueursMax = nbJoueursMax;
+    }
+
+    public void preparerNouvelleManche() {
+        for (Joueur j : joueurs) {
+            j.setEstDessinateur(false);
+            j.marquerCommeNonDevine();
+        }
+        Joueur dessinateur = joueurs.get(indexDessinateurActuel);
+        dessinateur.setEstDessinateur(true);
+        indexDessinateurActuel = (indexDessinateurActuel + 1) % joueurs.size();
     }
 
     /**
@@ -201,6 +214,14 @@ public class Partie {
     }
 
     // Getters / Setters
+
+    @Transient
+    public Joueur getDessinateurActuel() {
+        return joueurs.stream()
+            .filter(Joueur::isEstDessinateur)
+            .findFirst()
+            .orElse(null);
+    }
 
     public int getId() {
          return id;
