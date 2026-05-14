@@ -59,12 +59,13 @@ public class PartieService {
             return;
         }
         if ("JOIN".equals(message.getType())) {
-            messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/requestDrawing/" + message.getPseudo(), currentDrawings.get(codePartie));
+            if (currentDrawings.get(codePartie) != null) {
+                messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/requestDrawing/" + message.getPseudo(), currentDrawings.get(codePartie));
+            }
             dispatchMessage(codePartie);
         }
-        if (!"CHAT".equals(message.getType())) {
-            messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/chat", message);
-            return;
+        if ("JOIN".equals(message.getType()) || "LEAVE".equals(message.getType())) {
+            message.setContenu(String.valueOf(partie.getJoueurs().size()));
         }
         String motSecret = partie.getMotADeviner();
         if (message.getContenu().equalsIgnoreCase(motSecret)) {

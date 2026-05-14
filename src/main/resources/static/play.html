@@ -402,17 +402,11 @@
         }
     }
     function handleMessage(data) {
-        if (data.type === 'SUCCES' || data.type === 'CHAT') {
+        if (data.type == 'SUCCES' || data.type == 'CHAT') {
             addMessageToChat(data);
         }
-        if (data.type === 'JOIN') {
-            if (data.pseudo != username) {
-                playerCount++;
-            }
-            document.getElementById("playerCount").innerText = playerCount;
-        }
-        if (data.type === 'LEAVE') {
-            playerCount--;
+        if (data.type == 'JOIN' || data.type == 'LEAVE') {
+            playerCount = data.contenu;
             document.getElementById("playerCount").innerText = playerCount;
         }
     }
