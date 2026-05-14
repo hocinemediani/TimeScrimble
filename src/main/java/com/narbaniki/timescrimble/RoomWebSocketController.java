@@ -27,7 +27,7 @@ public class RoomWebSocketController {
     public void gererDessin(@DestinationVariable String code, DrawMessage message) {
         Partie partie = partieRepository.findByCode(code);
         if (partie.getDessinateurActuel().getPseudo().equals(message.getPseudo())) {
-            partieService.saveLine(message);
+            partieService.saveLine(message, code);
             messagingTemplate.convertAndSend("/topic/room/" + code + "/draw", message);
         }
     }

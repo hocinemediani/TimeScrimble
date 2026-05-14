@@ -22,16 +22,19 @@ public class PartieService {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
     
-    private List<DrawMessage> currentDrawing = new ArrayList<>();
+    private HashMap<String, ArrayList<DrawMessage>> currentDrawings = new HashMap<>();
 
-    public void saveLine(DrawMessage message) {
-        currentDrawing.add(message);
+    public void saveLine(DrawMessage message, String codePartie) {
+        ArrayList<DrawMessage> drawing = (currentDrawings.get(codePartie) == null) ? new ArrayList<>() : currentDrawings.get(codePartie);
+        drawing.add(message);
+        currentDrawings.put(codePartie, drawing);
     }
 
     public void lancerManche(String codePartie) {
         Partie partie = partieRepository.findByCode(codePartie);
         partie.preparerNouvelleManche();
         String mot = "Ilian"; /* Il faut rendre aléatoire le choix du mot. */
+        currentDrawings.remove(codePartie);
         partie.setMotADeviner(mot);
         partieRepository.save(partie);
         dispatchMessage(codePartie);
@@ -56,7 +59,7 @@ public class PartieService {
             return;
         }
         if ("JOIN".equals(message.getType())) {
-            messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/requestDrawing/" + message.getPseudo(), currentDrawing);
+            messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/requestDrawing/" + message.getPseudo(), currentDrawings.get(codePartie));
             dispatchMessage(codePartie);
         }
         if (!"CHAT".equals(message.getType())) {
