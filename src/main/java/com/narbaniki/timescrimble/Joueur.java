@@ -180,7 +180,7 @@ public class Joueur {
     }
     public void setEstDessinateur(boolean estDessinateur) {
          this.estDessinateur = estDessinateur; 
-        }
+    }
 
     public boolean isInvite() { 
         return estInvite; 

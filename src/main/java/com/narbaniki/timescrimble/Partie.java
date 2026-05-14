@@ -139,6 +139,15 @@ public class Partie {
         indexDessinateurActuel = (indexDessinateurActuel + 1) % joueurs.size();
     }
 
+    public boolean checkFinManche() {
+        for (Joueur joueur : joueurs) {
+            if (!joueur.isEstDessinateur() && !joueur.isADevine()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Ajoute un joueur à la partie.
      * Vérifie que la partie est en attente et qu'il reste de la place.

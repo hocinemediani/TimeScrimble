@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/styles.css">
-    <link rel="icon" type="image/x-icon" href="/logo.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.png">
     <title>Undefined</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
@@ -354,104 +354,6 @@
     }
     fetchUserInfo();
 
-    /* Connexion socket pour chat et traits. */
-    const socket = new SockJS('/ws');
-    const stompClient = Stomp.over(socket);
-    stompClient.connect({}, function (frame) {
-        console.log('Connection au serveur établie.');
-        const joinMessage = {
-            pseudo: username,
-            contenu: "",
-            type: "JOIN"
-        };
-        stompClient.send("/app/room/" + roomCode + "/chat", {}, JSON.stringify(joinMessage));
-        stompClient.subscribe('/topic/room/' + roomCode + '/draw', function (msg) {
-            const data = JSON.parse(msg.body);
-            drawReceivedLines(data.lignes);
-        });
-        /* Pour traiter le début et la fin (afficher les écrans et changer la logique. */
-        stompClient.subscribe('/topic/room/' + roomCode + '/status', function(msg) {
-            handleStatusUpdate(JSON.parse(msg.body));
-        });
-        stompClient.subscribe('/topic/room/' + roomCode + '/secret/' + username, function(msg) {
-            const data = JSON.parse(msg.body);
-            document.querySelector(".word-guess-text").innerText = data.mot;
-        });
-        stompClient.subscribe('/topic/room/' + roomCode + '/chat', function (message) {
-            const data = JSON.parse(message.body);
-            handleMessage(data);
-        });
-        stompClient.subscribe('/topic/room/' + roomCode + '/requestDrawing/' + username, function (msg) {
-            const history = JSON.parse(msg.body);
-            history.forEach(drawMsg => {
-                drawReceivedLines(drawMsg.lignes);
-            });
-        });
-        stompClient.send("/app/room/" + roomCode + "/requestHistory", {}, username);
-    });
-    function handleStatusUpdate(data) {
-        if (data.type === "DEBUT_MANCHE") {
-            const isDessinateur = (data.dessinateur === username);
-            canvas.style.pointerEvents = isDessinateur ? "auto" : "none";
-            document.getElementById("message").disabled = isDessinateur;
-            document.getElementById("message").placeholder = isDessinateur ? "You're drawing !" : "Type in your guess";
-            if (!isDessinateur) {
-                document.querySelector(".word-guess-text").innerText = "_ ".repeat(data.tailleMot);
-            }
-            document.querySelector(".word-guess-letter-count").innerText = data.tailleMot;
-        }
-    }
-    function handleMessage(data) {
-        if (data.type == 'SUCCES' || data.type == 'CHAT') {
-            addMessageToChat(data);
-        }
-        if (data.type == 'JOIN' || data.type == 'LEAVE') {
-            playerCount = data.contenu;
-            document.getElementById("playerCount").innerText = playerCount;
-        }
-    }
-    function addMessageToChat(data) {
-        const messagesArea = document.getElementById('messages-area'); // On cible la nouvelle zone
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'chat-message';
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'chat-content';
-        if (data.type === 'SUCCES') {
-            contentDiv.classList.add('correct');
-        }
-        const nameH1 = document.createElement('h1');
-        nameH1.className = 'player-name';
-        nameH1.textContent = data.pseudo;
-        const textH1 = document.createElement('h1');
-        textH1.className = 'message-content';
-        textH1.textContent = data.contenu;
-        contentDiv.appendChild(nameH1);
-        contentDiv.appendChild(textH1);
-        messageDiv.appendChild(contentDiv);
-        messagesArea.appendChild(messageDiv);
-        while (messagesArea.scrollHeight > messagesArea.clientHeight) {
-            messagesArea.firstChild.remove();
-        }
-    }
-    function sendChatMessage() {
-        event.preventDefault();
-        const messageToSend = {
-            pseudo: username,
-            contenu: document.getElementById("message").value,
-            type: "CHAT"
-        };
-        stompClient.send("/app/room/" + roomCode + "/chat", {}, JSON.stringify(messageToSend));
-        document.getElementById("message").value = "";
-    }
-    function startGame() {
-        if (stompClient && stompClient.connected) {
-            // On envoie un signal au contrôleur Spring
-            stompClient.send("/app/room/" + roomCode + "/start", {}, JSON.stringify({}));
-            // Optionnel : cacher le bouton une fois cliqué
-            document.getElementById("btn-start").style.display = "none";
-        }
-    }
-
     /* Dessin sur canvas. */
     let canvas = document.getElementById("canvas");
     let canvasContext = canvas.getContext("2d");
@@ -538,6 +440,103 @@
         canvas.addEventListener("mousemove", draw);
         canvas.addEventListener("mouseup", endDrawing);
     });
+    
+    /* Connexion socket pour chat et traits. */
+    const socket = new SockJS('/ws');
+    const stompClient = Stomp.over(socket);
+    stompClient.connect({}, function (frame) {
+        console.log('Connection au serveur établie.');
+        const joinMessage = {
+            pseudo: username,
+            contenu: "",
+            type: "JOIN"
+        };
+        stompClient.send("/app/room/" + roomCode + "/chat", {}, JSON.stringify(joinMessage));
+        stompClient.subscribe('/topic/room/' + roomCode + '/draw', function (msg) {
+            const data = JSON.parse(msg.body);
+            drawReceivedLines(data.lignes);
+        });
+        /* Pour traiter le début et la fin (afficher les écrans et changer la logique. */
+        stompClient.subscribe('/topic/room/' + roomCode + '/status', function(msg) {
+            handleStatusUpdate(JSON.parse(msg.body));
+        });
+        stompClient.subscribe('/topic/room/' + roomCode + '/secret/' + username, function(msg) {
+            const data = JSON.parse(msg.body);
+            document.querySelector(".word-guess-text").innerText = data.mot;
+        });
+        stompClient.subscribe('/topic/room/' + roomCode + '/chat', function (message) {
+            const data = JSON.parse(message.body);
+            handleMessage(data);
+        });
+        stompClient.subscribe('/topic/room/' + roomCode + '/requestDrawing/' + username, function (msg) {
+            const history = JSON.parse(msg.body);
+            history.forEach(drawMsg => {
+                drawReceivedLines(drawMsg.lignes);
+            });
+        });
+        stompClient.send("/app/room/" + roomCode + "/requestHistory", {}, username);
+    });
+    function handleStatusUpdate(data) {
+        if (data.type == "DEBUT_MANCHE") {
+            canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        const isDessinateur = (data.dessinateur === username);
+        canvas.style.pointerEvents = isDessinateur ? "auto" : "none";
+        document.getElementById("message").disabled = isDessinateur;
+        document.getElementById("message").placeholder = isDessinateur ? "You're drawing !" : "Type in your guess";
+        if (!isDessinateur) {
+            document.querySelector(".word-guess-text").innerText = "_ ".repeat(data.tailleMot);
+        }
+        document.querySelector(".word-guess-letter-count").innerText = data.tailleMot;
+    }
+    function handleMessage(data) {
+        if (data.type == 'SUCCES' || data.type == 'CHAT') {
+            addMessageToChat(data);
+        }
+        if (data.type == 'JOIN' || data.type == 'LEAVE') {
+            playerCount = data.contenu;
+            document.getElementById("playerCount").innerText = playerCount;
+        }
+    }
+    function addMessageToChat(data) {
+        const messagesArea = document.getElementById('messages-area'); // On cible la nouvelle zone
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message';
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'chat-content';
+        if (data.type === 'SUCCES') {
+            contentDiv.classList.add('correct');
+        }
+        const nameH1 = document.createElement('h1');
+        nameH1.className = 'player-name';
+        nameH1.textContent = data.pseudo;
+        const textH1 = document.createElement('h1');
+        textH1.className = 'message-content';
+        textH1.textContent = data.contenu;
+        contentDiv.appendChild(nameH1);
+        contentDiv.appendChild(textH1);
+        messageDiv.appendChild(contentDiv);
+        messagesArea.appendChild(messageDiv);
+        while (messagesArea.scrollHeight > messagesArea.clientHeight) {
+            messagesArea.firstChild.remove();
+        }
+    }
+    function sendChatMessage() {
+        event.preventDefault();
+        const messageToSend = {
+            pseudo: username,
+            contenu: document.getElementById("message").value,
+            type: "CHAT"
+        };
+        stompClient.send("/app/room/" + roomCode + "/chat", {}, JSON.stringify(messageToSend));
+        document.getElementById("message").value = "";
+    }
+    function startGame() {
+        if (stompClient && stompClient.connected) {
+            stompClient.send("/app/room/" + roomCode + "/start", {}, JSON.stringify({}));
+            document.getElementById("btn-start").style.display = "none";
+        }
+    }
 
     /* Envoi des tracés. */
     setInterval(() => {
