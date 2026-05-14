@@ -130,13 +130,13 @@ public class Partie {
     }
 
     public void preparerNouvelleManche() {
+        indexDessinateurActuel = (indexDessinateurActuel + 1) % joueurs.size();
         for (Joueur j : joueurs) {
             j.setEstDessinateur(false);
             j.marquerCommeNonDevine();
         }
         Joueur dessinateur = joueurs.get(indexDessinateurActuel);
         dessinateur.setEstDessinateur(true);
-        indexDessinateurActuel = (indexDessinateurActuel + 1) % joueurs.size();
     }
 
     public boolean checkFinManche() {
