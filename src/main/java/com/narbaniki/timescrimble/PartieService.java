@@ -83,26 +83,39 @@ public class PartieService {
              return;   
         }
         Joueur joueur = joueurOpt.get();
+        String pseudoInitial = message.getPseudo();
         if (message.getContenu().equalsIgnoreCase(motSecret) && !joueur.isADevine()) {
             joueur.marquerCommeDevine();
+            joueur.setRangDevinage(partie.getOntDevine());
+            partie.incOntDevine();
             joueurRepository.save(joueur);
             partieRepository.save(partie);
             ChatMessage msgSucces = new ChatMessage(
-                "", message.getPseudo() + " a trouvé le mot !", "SUCCES"
+                "", message.getPseudo() + " (" + joueur.getScoreSession() + " pts)" + " a trouvé le mot !", "SUCCES"
             );
             if (partie.checkFinManche()) {
                 Map<String, Object> status = new HashMap<>();
                 status.put("type", "FIN_MANCHE");
                 messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/status", (Object) status);
+                for (Joueur joueurFinal : partie.getJoueurs()) {
+                    if (joueurFinal.isEstDessinateur()) {
+                        joueurFinal.ajouterPoints(600 * partie.getOntDevine() / (partie.getJoueurs().size() - 1));
+                    } else if (joueurFinal.isADevine()) {
+                        joueurFinal.ajouterPoints(500 - (joueurFinal.getRangDevinage() * 350) / partie.getJoueurs().size());
+                    }
+                    joueurRepository.save(joueurFinal);
+                }
+                partieRepository.save(partie);
                 lancerManche(codePartie);
             }
             messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/chat", msgSucces);
         } else {
+            message.setPseudo(message.getPseudo() + " (" + joueur.getScoreSession() + "pts)");
             messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/chat", message);
         }
         if ("JOIN".equals(message.getType())) {
             if (currentDrawings.get(codePartie) != null) {
-                messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/requestDrawing/" + message.getPseudo(), currentDrawings.get(codePartie));
+                messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/requestDrawing/" + pseudoInitial, currentDrawings.get(codePartie));
             }
             dispatchMessage(codePartie, "OBTENIR_DESSIN");
         }

@@ -13,9 +13,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
@@ -96,6 +95,7 @@ public class Partie {
      * orphanRemoval : retire un Joueur de la base s'il quitte la partie.
      */
     @OneToMany(mappedBy = "partie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     private final List<Joueur> joueurs = new ArrayList<>();
 
     /**
@@ -104,7 +104,8 @@ public class Partie {
     @Column(nullable=true)
     private String motADeviner = "";
 
-    private int indexDessinateurActuel = 0;
+    private int indexDessinateurActuel = -1;
+    private int ontDevine = 0;
 
     @PrePersist
     private void preCreation() {
@@ -134,9 +135,11 @@ public class Partie {
         for (Joueur j : joueurs) {
             j.setEstDessinateur(false);
             j.marquerCommeNonDevine();
+            j.setRangDevinage(0);
         }
         Joueur dessinateur = joueurs.get(indexDessinateurActuel);
         dessinateur.setEstDessinateur(true);
+        resetOntDevine();
     }
 
     public boolean checkFinManche() {
@@ -164,6 +167,17 @@ public class Partie {
         joueur.setPartie(this);
         joueurs.add(joueur);
     }
+
+    public void incOntDevine() {
+        ontDevine++;
+    }
+
+    public int getOntDevine() {
+        return ontDevine;
+    }
+
+    public void resetOntDevine() {
+        ontDevine = 0;    }
 
     /**
      * Retire un joueur de la partie.

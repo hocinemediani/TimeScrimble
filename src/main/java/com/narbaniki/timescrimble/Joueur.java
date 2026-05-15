@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -49,6 +50,9 @@ public class Joueur {
     /** Points accumulés pendant cette partie. Remis à 0 à la prochaine. */
     @Column(nullable = false)
     private int scoreSession = 0;
+
+    @Transient
+    private int rangDevinage = 0;
  
     /**
      * true si ce joueur est le dessinateur de la manche courante.
@@ -134,6 +138,10 @@ public class Joueur {
         }
         this.scoreSession += points;
     }
+
+    public void setPoints(int points) {
+        this.scoreSession = points;
+    }
  
     /**
      * Réinitialise l'état entre deux manches.
@@ -144,6 +152,14 @@ public class Joueur {
         this.estDessinateur = false;
     }
  
+    public void setRangDevinage(int rangDevinage) {
+        this.rangDevinage = rangDevinage;
+    }
+
+    public int getRangDevinage() {
+        return rangDevinage;
+    }
+
     /** Marque ce joueur comme ayant deviné le mot de la manche courante. */
     public void marquerCommeDevine() {
         this.aDevine = true;

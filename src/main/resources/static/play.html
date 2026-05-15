@@ -214,6 +214,24 @@
         border: 1px solid white;
         cursor: pointer;
     }
+    #transition-manche {
+        height: 100%;
+        width: 100%;
+        display: none;
+        opacity: 0.95;
+        background-color: black;
+        position: absolute;
+        z-index: 9000;
+    }
+    #word-to-draw-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin: 0;
+        text-align: center;
+        color: white;
+    }
     .black {background-color: black;}
     .blue {background-color: blue;}
     .red {background-color: red;}
@@ -228,6 +246,9 @@
     .grey{background-color: grey;}
 </style>
 <body>
+    <div id="transition-manche">
+        <h1 id="word-to-draw-container">You shouldn't be seeing this</h1>
+    </div>
     <div class="game-code">
         <h1 class="game-code-text">Room's code : <span id="roomCode">undefined</span></h1>
     </div>
@@ -239,9 +260,7 @@
         </div>
         <div class="main-container"> 
             <div class="play-container">
-                
                 <div class="chat-container">
-                    
                     <div id="messages-area" class="messages-area">
                         <div class="chat-message">
                             <div class="chat-content">
@@ -456,13 +475,15 @@
             const data = JSON.parse(msg.body);
             drawReceivedLines(data.lignes);
         });
-        /* Pour traiter le début et la fin (afficher les écrans et changer la logique. */
+
+        /* Pour traiter le début et la fin (afficher les écrans et changer la logique). */
         stompClient.subscribe('/topic/room/' + roomCode + '/status', function(msg) {
             handleStatusUpdate(JSON.parse(msg.body));
         });
         stompClient.subscribe('/topic/room/' + roomCode + '/secret/' + username, function(msg) {
             const data = JSON.parse(msg.body);
             document.querySelector(".word-guess-text").innerText = data.mot;
+            document.getElementById("word-to-draw-container").innerText = "Your word is : " + data.mot;
         });
         stompClient.subscribe('/topic/room/' + roomCode + '/chat', function (message) {
             const data = JSON.parse(message.body);
@@ -479,13 +500,18 @@
     function handleStatusUpdate(data) {
         if (data.type == "DEBUT_MANCHE") {
             canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+            setTimeout(() => {document.getElementById("transition-manche").style.display = "none";}, 2500);
         }
-        const isDessinateur = (data.dessinateur === username);
+        if (data.type == "FIN_MANCHE") {
+            document.getElementById("transition-manche").style.display = "block";
+        }
+        const isDessinateur = (data.dessinateur == username);
         canvas.style.pointerEvents = isDessinateur ? "auto" : "none";
         document.getElementById("message").disabled = isDessinateur;
         document.getElementById("message").placeholder = isDessinateur ? "You're drawing !" : "Type in your guess";
         if (!isDessinateur) {
             document.querySelector(".word-guess-text").innerText = "_ ".repeat(data.tailleMot);
+            document.getElementById("word-to-draw-container").innerText = "You'll be guessing soon !";
         }
         document.querySelector(".word-guess-letter-count").innerText = data.tailleMot;
     }
@@ -499,12 +525,12 @@
         }
     }
     function addMessageToChat(data) {
-        const messagesArea = document.getElementById('messages-area'); // On cible la nouvelle zone
+        const messagesArea = document.getElementById('messages-area');
         const messageDiv = document.createElement('div');
         messageDiv.className = 'chat-message';
         const contentDiv = document.createElement('div');
         contentDiv.className = 'chat-content';
-        if (data.type === 'SUCCES') {
+        if (data.type == 'SUCCES') {
             contentDiv.classList.add('correct');
         }
         const nameH1 = document.createElement('h1');
