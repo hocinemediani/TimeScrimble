@@ -518,6 +518,7 @@
     /* Connexion socket pour chat et traits. */
     const socket = new SockJS('/ws');
     const stompClient = Stomp.over(socket);
+    stompClient.debug = null
     stompClient.connect({}, function (frame) {
         console.log('Connection au serveur établie.');
         const joinMessage = {
