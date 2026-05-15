@@ -10,6 +10,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -94,7 +95,7 @@ public class Partie {
      * CascadeType.ALL : si la partie est supprimée, les joueurs le sont aussi.
      * orphanRemoval : retire un Joueur de la base s'il quitte la partie.
      */
-    @OneToMany(mappedBy = "partie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "partie", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("id ASC")
     private final List<Joueur> joueurs = new ArrayList<>();
 
@@ -106,6 +107,7 @@ public class Partie {
 
     private int indexDessinateurActuel = -1;
     private int ontDevine = 0;
+    private int manchesJouees = 0;
 
     @PrePersist
     private void preCreation() {
@@ -130,8 +132,13 @@ public class Partie {
         this.nbJoueursMax = nbJoueursMax;
     }
 
+    public int getManchesJouees() {
+        return manchesJouees;
+    }
+
     public void preparerNouvelleManche() {
         indexDessinateurActuel = (indexDessinateurActuel + 1) % joueurs.size();
+        manchesJouees++;
         for (Joueur j : joueurs) {
             j.setEstDessinateur(false);
             j.marquerCommeNonDevine();

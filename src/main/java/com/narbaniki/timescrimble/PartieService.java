@@ -8,6 +8,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -25,7 +30,11 @@ public class PartieService {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
     
-    private HashMap<String, ArrayList<DrawMessage>> currentDrawings = new HashMap<>();
+    private final HashMap<String, ArrayList<DrawMessage>> currentDrawings = new HashMap<>();
+
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
+    private final Map<String, ScheduledFuture<?>> timersActifs = new ConcurrentHashMap<>();
+    private final Map<String, Integer> tempsRestant = new ConcurrentHashMap<>();
 
     public void saveLine(DrawMessage message, String codePartie) {
         ArrayList<DrawMessage> drawing = (currentDrawings.get(codePartie) == null) ? new ArrayList<>() : currentDrawings.get(codePartie);
@@ -45,8 +54,54 @@ public class PartieService {
         }
     }
 
+    public void stopTimer(String codePartie) {
+        ScheduledFuture<?> timer = timersActifs.remove(codePartie);
+        if (timer != null) {
+            timer.cancel(false);
+        }
+        tempsRestant.remove(codePartie);
+    }
+
+    public void initTimer(String codePartie) {
+        stopTimer(codePartie);
+        tempsRestant.put(codePartie, 60);
+        ScheduledFuture<?> timerTask = scheduler.scheduleAtFixedRate(() -> {
+            int temps = tempsRestant.get(codePartie) - 1;
+            tempsRestant.put(codePartie, temps);
+            if (temps <= 0) {
+                stopTimer(codePartie);
+                Partie partie = partieRepository.findByCode(codePartie);
+                if (partie != null) {
+                    gererFinManche(codePartie, partie);
+                }
+            } else {
+                Map<String, Object> timeMessage = new HashMap<>();
+                timeMessage.put("type", "TIMER");
+                timeMessage.put("contenu", temps);
+                messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/status", (Object) timeMessage);
+            }
+        }, 1, 1, TimeUnit.SECONDS);
+        timersActifs.put(codePartie, timerTask);
+    }
+
+    public void finirPartie(String codePartie, Partie partie) {
+        stopTimer(codePartie);
+        for (Joueur joueur : partie.getJoueurs()) {
+            Map<String, String> secret = new HashMap<>();
+            secret.put("score", String.valueOf(joueur.getScoreSession()));
+            messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/secret/" + joueur.getPseudo(), secret);
+        }
+        Map<String, Object> status = new HashMap<>();
+        status.put("type", "FIN_PARTIE");
+        messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/status", (Object) status);
+    }
+
     public void lancerManche(String codePartie) {
+        initTimer(codePartie);
         Partie partie = partieRepository.findByCode(codePartie);
+        if (partie.getManchesJouees() > partie.getJoueurs().size() * 2 - 1) {
+            finirPartie(codePartie, partie);
+        }
         partie.preparerNouvelleManche();
         currentDrawings.remove(codePartie);
         String mot = getRandomWord();
@@ -67,6 +122,24 @@ public class PartieService {
         Map<String, String> secret = new HashMap<>();
         secret.put("mot", partie.getMotADeviner());
         messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/secret/" + dessinateur.getPseudo(), secret);
+    }
+
+    public void gererFinManche(String codePartie, Partie partie) {
+        stopTimer(codePartie);
+        for (Joueur joueurFinal : partie.getJoueurs()) {
+            if (joueurFinal.isEstDessinateur()) {
+                joueurFinal.ajouterPoints(600 * partie.getOntDevine() / (partie.getJoueurs().size() - 1));
+            } else if (joueurFinal.isADevine()) {
+                joueurFinal.ajouterPoints(500 - (joueurFinal.getRangDevinage() * 350) / partie.getJoueurs().size());
+            }
+            joueurRepository.save(joueurFinal);
+        }
+        Map<String, Object> status = new HashMap<>();
+        status.put("type", "FIN_MANCHE");
+        status.put("contenu", partie.getMotADeviner());
+        messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/status", (Object) status);
+        partieRepository.save(partie);
+        lancerManche(codePartie);
     }
 
     public void traiterPropositionChat(String codePartie, ChatMessage message) {
@@ -94,19 +167,7 @@ public class PartieService {
                 "", message.getPseudo() + " (" + joueur.getScoreSession() + " pts)" + " a trouvé le mot !", "SUCCES"
             );
             if (partie.checkFinManche()) {
-                Map<String, Object> status = new HashMap<>();
-                status.put("type", "FIN_MANCHE");
-                messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/status", (Object) status);
-                for (Joueur joueurFinal : partie.getJoueurs()) {
-                    if (joueurFinal.isEstDessinateur()) {
-                        joueurFinal.ajouterPoints(600 * partie.getOntDevine() / (partie.getJoueurs().size() - 1));
-                    } else if (joueurFinal.isADevine()) {
-                        joueurFinal.ajouterPoints(500 - (joueurFinal.getRangDevinage() * 350) / partie.getJoueurs().size());
-                    }
-                    joueurRepository.save(joueurFinal);
-                }
-                partieRepository.save(partie);
-                lancerManche(codePartie);
+                gererFinManche(codePartie, partie);
             }
             messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/chat", msgSucces);
         } else {

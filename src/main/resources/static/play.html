@@ -225,12 +225,56 @@
     }
     #word-to-draw-container {
         position: absolute;
-        top: 50%;
+        top: 52%;
         left: 50%;
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, -52%);
         margin: 0;
         text-align: center;
         color: white;
+    }
+    #word-was {
+        position: absolute;
+        top: 48%;
+        left: 50%;
+        transform: translate(-50%, -48%);
+        margin: 0;
+        text-align: center;
+        color: white;
+    }
+    #ecran-fin {
+        width: 100%;
+        height: 100%;
+        opacity: 0.97;
+        background-color: black;
+        position: absolute;
+        z-index: 9000;
+        display: none;
+    }
+    .score-text {
+        position: absolute;
+        top: 48%;
+        left: 50%;
+        transform: translate(-50%, -48%);
+        margin: 0;
+        text-align: center;
+        color: white;
+    }
+    .lobby-button {
+        position: absolute;
+        top: 59%;
+        left: 50%;
+        transform: translate(-50%, -59%);
+        margin: 0;
+        text-align: center;
+        color: white;
+        background-color: var(--accent-color);
+        border: none;
+        padding: 12px 20px;
+        border-radius: 0.5rem;
+        font-family: 'Balsamiq Sans', sans-serif;
+        font-size: 1.3rem;
+        cursor: pointer;
+        transition: transform 0.1s;
     }
     .black {background-color: black;}
     .blue {background-color: blue;}
@@ -246,7 +290,13 @@
     .grey{background-color: grey;}
 </style>
 <body>
+    <div id="ecran-fin">
+        <!-- il faudrait faire l'ecran de fin ici. -->
+        <h1 class="score-text" id="final-score">Congratulations ! Your score was : undefined</h1>
+        <button class ="lobby-button" onclick="returnToLobby()">Return to the lobby</button>
+    </div>
     <div id="transition-manche">
+        <h1 id="word-was">The word was : undefined</h1>
         <h1 id="word-to-draw-container">You shouldn't be seeing this</h1>
     </div>
     <div class="game-code">
@@ -321,7 +371,7 @@
                 </div>
                 <div class="timer-container">
                     <img class="timer-image" src="/timer.png" alt="Timer">
-                    <h1 class="timer-text">46</h1>
+                    <h1 id="timer-text">46</h1>
                 </div>
             </div>
         </div>
@@ -333,6 +383,7 @@
     let username;
     let playerCount;
     let segmentBuffer = [];
+    let roomName;
     document.querySelectorAll('.chat-message').forEach(msg => msg.remove());
     async function fetchRoomInfo() {
         roomCode = new URLSearchParams(globalThis.location.search).get("code");
@@ -348,12 +399,16 @@
             if (playerCount <= 1) {
                 document.getElementById("btn-start").style.display = "block";
             }
+            roomName = infos.name;
             document.title = infos.name;
         } catch (error) {
             console.error("Problème lors de la récupération des informations de la room : ", error);
         }
     }
     fetchRoomInfo();
+    function returnToLobby() {
+        globalThis.location.href = "/lobby";
+    }
     async function fetchUserInfo() {
         try {
             const infos = await fetch("/userinfo", {
@@ -482,6 +537,11 @@
         });
         stompClient.subscribe('/topic/room/' + roomCode + '/secret/' + username, function(msg) {
             const data = JSON.parse(msg.body);
+            if (data.hasOwnProperty('score')) {
+                document.getElementById("final-score").innerText = "Congratulations ! Your score was : " + data.score;
+                document.getElementById("transition-manche").style.display = "none";
+                return;
+            }
             document.querySelector(".word-guess-text").innerText = data.mot;
             document.getElementById("word-to-draw-container").innerText = "Your word is : " + data.mot;
         });
@@ -498,12 +558,21 @@
         stompClient.send("/app/room/" + roomCode + "/requestHistory", {}, username);
     });
     function handleStatusUpdate(data) {
+        if (data.type == "TIMER") {
+            document.getElementById("timer-text").innerText = data.contenu;
+            return;
+        }
+        if (data.type == "FIN_PARTIE") {
+            document.getElementById("ecran-fin").style.display = "flex";
+            return;
+        }
         if (data.type == "DEBUT_MANCHE") {
             canvasContext.clearRect(0, 0, canvas.width, canvas.height);
             setTimeout(() => {document.getElementById("transition-manche").style.display = "none";}, 2500);
         }
         if (data.type == "FIN_MANCHE") {
             document.getElementById("transition-manche").style.display = "block";
+            document.getElementById("word-was").innerText = "The word was : " + data.contenu;
         }
         const isDessinateur = (data.dessinateur == username);
         canvas.style.pointerEvents = isDessinateur ? "auto" : "none";
