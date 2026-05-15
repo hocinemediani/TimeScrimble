@@ -70,10 +70,10 @@ public class Partie {
     private boolean estPrivee;
 
     /**
-     * Nombre maximum de joueurs autorisés (entre 2 et 8).
+     * Nombre maximum de joueurs autorisés (entre 2 et 24).
      */
     @Min(2)
-    @Max(8)
+    @Max(24)
     @Column(nullable = false)
     private int nbJoueursMax;
 
