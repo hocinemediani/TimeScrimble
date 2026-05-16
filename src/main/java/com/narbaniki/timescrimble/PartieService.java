@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -26,6 +27,9 @@ public class PartieService {
 
     @Autowired
     private JoueurRepository joueurRepository;
+
+    @Autowired
+    private UtilisateurRepository utilisateurRepository;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -90,10 +94,20 @@ public class PartieService {
             Map<String, String> secret = new HashMap<>();
             secret.put("score", String.valueOf(joueur.getScoreSession()));
             messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/secret/" + joueur.getPseudo(), secret);
+            List<String> leaderboard = partie.getLeaderboard();
+            if (!utilisateurRepository.findByUsername(joueur.getPseudo()).isEmpty()) {
+                Utilisateur utilisateur = utilisateurRepository.findByUsername(joueur.getPseudo()).get();
+                utilisateur.incrementerParties();
+                if (leaderboard.get(0).equals(utilisateur.getPseudo())) {
+                    utilisateur.incrementerVictoires();
+                }
+                utilisateurRepository.save(utilisateur);
+            }
         }
         Map<String, Object> status = new HashMap<>();
         status.put("type", "FIN_PARTIE");
         messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/status", (Object) status);
+        partieRepository.delete(partie);
     }
 
     public void lancerManche(String codePartie) {

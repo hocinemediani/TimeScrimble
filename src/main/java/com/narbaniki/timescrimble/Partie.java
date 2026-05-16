@@ -2,6 +2,7 @@ package com.narbaniki.timescrimble;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -241,6 +242,13 @@ public class Partie {
      */
     public boolean estPleine() {
         return joueurs.size() >= nbJoueursMax;
+    }
+
+    public List<String> getLeaderboard() {
+        return joueurs.stream()
+            .sorted(Comparator.comparingInt(Joueur::getScoreSession).reversed())
+            .map(Joueur::getPseudo)
+            .toList();
     }
 
     // Getters / Setters
