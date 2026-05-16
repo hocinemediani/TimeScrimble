@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/x-icon" href="/logo.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.png">
     <title>Welcome to TimeScrimble !</title>
 </head>
 <style>
@@ -96,20 +96,32 @@
     }
     .slider1 {
         background-color: var(--main-color);
+        background-image: url("/logo.png");
+        background-position: center;
+        background-repeat: no-repeat;
         z-index: 500;
-        animation-delay: 4s;
-        animation-duration: 2s;
+        animation: 
+            logoEnter 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, 
+            slideUp 1s 2s cubic-bezier(.22,.49,.88,.91) forwards;
+    }
+    @keyframes logoEnter {
+        0% {
+            background-size: 0%;
+        }
+        100% {
+            background-size: 35%;
+        }
     }
     .slider2 {
         background-color: var(--secondary-color);
         z-index: 450;
-        animation-delay: 4.05s;
+        animation-delay: 2.05s;
         animation-duration: 2.15s;
     }
     .slider3 {
         background-color: black;
         z-index: 400;
-        animation-delay: 4.08s;
+        animation-delay: 2.08s;
         animation-duration: 2.1s;
     }
     @keyframes slideUp {

@@ -44,8 +44,8 @@ public class PartieService {
 
     public String getRandomWord() {
         try (Scanner scanner = new Scanner(new File(getClass().getResource("randomWords.txt").getFile()))) {
-            int randomNumber = new Random().nextInt(30);
-            for (int i = 0; i < randomNumber; i++) {
+            int randomNumber = new Random().nextInt(100);
+            for (int i = 0; i <= randomNumber; i++) {
                 scanner.nextLine();
             }
             return scanner.nextLine();
@@ -99,7 +99,7 @@ public class PartieService {
     public void lancerManche(String codePartie) {
         initTimer(codePartie);
         Partie partie = partieRepository.findByCode(codePartie);
-        if (partie.getManchesJouees() > partie.getJoueurs().size() * 2 - 1) {
+        if (partie.getManchesJouees() > partie.getJoueurs().size() * 3 - 1) {
             finirPartie(codePartie, partie);
         }
         partie.preparerNouvelleManche();
