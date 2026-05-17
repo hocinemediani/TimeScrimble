@@ -203,6 +203,7 @@
         height: 100%;
         overflow: hidden;
         cursor: crosshair;
+        touch-action: none;
     }
     .colors {
         display: flex;
@@ -215,7 +216,7 @@
         cursor: pointer;
     }
     #transition-manche {
-        height: 100%;
+        height: 100vh;
         width: 100%;
         display: none;
         opacity: 0.95;
@@ -290,6 +291,80 @@
     .darkgreen {background-color: darkgreen;}
     .cyan {background-color: cyan;}
     .grey{background-color: grey;}
+    
+    @media (max-width: 775px) {
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 45vh auto 30vh;
+            gap: 1%;
+            max-height: none;
+            height: auto;
+        }
+        .play-container {
+            display: contents;
+        }
+        .drawing-container {
+            grid-column: 1;
+            grid-row: 1;
+            width: 100%;
+        }
+        .side-bar {
+            grid-column: 1;
+            grid-row: 2;
+            width: 100%;
+            flex-direction: row; 
+            align-items: center;
+            justify-content: space-around;
+            padding: 2%;
+            box-sizing: border-box;
+        }
+        .tools-text, .colors-text {
+            display: none;
+        }
+        .tools {
+            flex-direction: row;
+            gap: 10px;
+        }
+        .tool {
+            width: 40px;
+            margin-bottom: 0;
+        }
+        .colors {
+            width: 160px;
+            justify-content: center;
+        }
+        .color-button {
+            width: 25px;
+        }
+        .timer-container {
+            flex-direction: column;
+        }
+        
+        .timer-image {
+            width: 30px;
+        }
+        .chat-container {
+            grid-column: 1;
+            grid-row: 3;
+            width: 100%;
+            border: none;
+        }
+        .chat-input {
+            margin: 0;
+            width: 100%;
+        }
+        .chat-message {
+            margin-top: 0 !important;
+            margin-right: 0 !important;
+            margin-bottom: 3% !important;
+            margin-left: 0 !important;
+        }
+        .lobby-button {
+            top: 80% !important;
+            transform: translate(-50%, -80%) !important;
+        }
+    }
 </style>
 <body>
     <div id="ecran-fin">
@@ -643,14 +718,14 @@
             };
         }
 
-        canvas.addEventListener("mousedown", (e) => {
+        canvas.addEventListener("pointerdown", (e) => {
             const pos = getCorrectPosition(e);
             xPos = pos.xPos;
             yPos = pos.yPos;
             isDrawing = true;
         });
 
-        canvas.addEventListener("mousemove", (e) => {
+        canvas.addEventListener("pointermove", (e) => {
             if (!isDrawing) return;
 
             canvasContext.beginPath();
@@ -674,8 +749,9 @@
         });
 
         const stopDrawing = () => { isDrawing = false; };
-        canvas.addEventListener("mouseup", stopDrawing);
-        canvas.addEventListener("mouseleave", stopDrawing);
+        canvas.addEventListener("pointerup", stopDrawing);
+        canvas.addEventListener("pointercancel", stopDrawing);
+        canvas.addEventListener("pointerout", stopDrawing);
     }
 
     function drawReceivedLines(lines) {
