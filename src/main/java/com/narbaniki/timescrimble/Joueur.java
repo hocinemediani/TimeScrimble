@@ -218,6 +218,7 @@ public class Joueur {
     /** Retourne la partie à laquelle le joueur participe.
      * @return La partie associée au joueur
      */
+    @JsonIgnore
     public Partie getPartie() { 
         return partie;
     }

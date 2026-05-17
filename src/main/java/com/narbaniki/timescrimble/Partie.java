@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -211,6 +213,7 @@ public class Partie {
      * @return Le joueur désigné comme hôte
      * @throws IllegalStateException Si la partie ne contient aucun joueur
      */
+    @JsonIgnore
     public Joueur getHost() throws IllegalStateException {
         if (joueurs.isEmpty()) {
             throw new IllegalStateException("La partie ne contient aucun joueur.");
@@ -222,6 +225,7 @@ public class Partie {
     /** Génère et retourne le classement actuel des joueurs en fonction de leurs scores.
      * @return Une liste contenant les pseudonymes des joueurs triés par score décroissant
      */
+    @JsonIgnore
     public List<String> getLeaderboard() {
         return joueurs.stream()
             .sorted(Comparator.comparingInt(Joueur::getScoreSession).reversed())
@@ -233,6 +237,7 @@ public class Partie {
     /** Recherche et retourne le joueur qui est défini comme le dessinateur actuel.
      * @return Le joueur dessinateur, ou null s'il n'y en a pas
      */
+    @JsonIgnore
     @Transient
     public Joueur getDessinateurActuel() {
         return joueurs.stream()

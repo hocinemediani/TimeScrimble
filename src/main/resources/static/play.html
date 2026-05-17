@@ -293,7 +293,6 @@
 </style>
 <body>
     <div id="ecran-fin">
-        <!-- il faudrait faire l'ecran de fin ici. -->
         <h1 class="score-text" id="final-score">Congratulations ! Your score was : undefined</h1>
         <button class ="lobby-button" onclick="returnToLobby()">Return to the lobby</button>
     </div>
@@ -307,7 +306,6 @@
     <div class="main-content">
         <div class="player-count-container">
             <h1 class="player-count"><span id="playerCount">undefined</span> Players</h1>
-            <!-- Bouton de merde, a changer quand l'écran de la maquette sera fait. -->
             <button id="btn-start" onclick="startGame()" style="display: none; margin-top: 10px; padding: 5px 15px; cursor: pointer;">Start the game</button>
         </div>
         <div class="main-container"> 
@@ -349,9 +347,9 @@
                 <div class="tools-container">
                     <h1 class="tools-text">Tools</h1>
                     <div class="tools">
-                        <button class="tool" id="eraser" onclick="erase()" onKeyDown="erase()"></button>
-                        <button class="tool" id="pencil" onclick="pencil()" onKeyDown="pencil()"></button>
-                        <button class="tool" id="bucket" onclick="bucket()" onKeyDown="bucket()"></button>
+                        <button class="tool" id="eraser" onclick="erase()"></button>
+                        <button class="tool" id="pencil" onclick="pencil()"></button>
+                        <button class="tool" id="bucket" onclick="bucket()"></button>
                     </div>
                 </div>
                 <div class="colors-container">
@@ -380,262 +378,236 @@
     </div>
 </body>
 <script>
-    /* Initialisation */
-    let roomCode;
-    let username;
-    let playerCount;
-    let segmentBuffer = [];
-    let roomName;
+    /* Etat du jeu. */
+    let roomCode = new URLSearchParams(globalThis.location.search).get("code");
+    let username = null;
+    let playerCount = 0;
+    let roomName = null;
     let firstTime = true;
-    document.querySelectorAll('.chat-message').forEach(msg => msg.remove());
+    let segmentBuffer = [];
+
+    // Socket et Canvas
+    let socket = null;
+    let stompClient = null;
+    let canvas = null;
+    let canvasContext = null;
+    let previousColor = "black";
+
+    /* Initialisation. */
+    window.addEventListener('load', async () => {
+        document.querySelectorAll('.chat-message').forEach(msg => msg.remove());
+        
+        await fetchRoomInfo();
+        await fetchUserInfo();
+        initCanvas();
+        initWebSockets();
+    });
+
+    /* Gestion des informations. */
     async function fetchRoomInfo() {
-        roomCode = new URLSearchParams(globalThis.location.search).get("code");
-        let fullURL = "/roominfo"+ "?code=" + roomCode;
         try {
-            let response = await fetch(fullURL, {
-                method: 'GET'
-            });
-            let infos = await response.json();
+            const response = await fetch("/roominfo?code=" + roomCode, { method: 'GET' });
+            const infos = await response.json();
+            
             document.getElementById("roomCode").innerText = roomCode;
             document.getElementById("playerCount").innerText = infos.playerCount;
-            playerCount = infos.playerCount
+            playerCount = infos.playerCount;
+            roomName = infos.name;
+            document.title = infos.name;
+
             if (playerCount <= 1) {
                 document.getElementById("btn-start").style.display = "block";
             }
-            roomName = infos.name;
-            document.title = infos.name;
         } catch (error) {
             console.error("Problème lors de la récupération des informations de la room : ", error);
         }
     }
-    fetchRoomInfo();
-    function returnToLobby() {
-        globalThis.location.href = "/lobby";
-    }
+
     async function fetchUserInfo() {
         try {
-            const infos = await fetch("/userinfo", {
-                method: "GET",
-                credentials: "include"
-            });
-            if (!infos.ok) {
-                console.error("GROS PROBLEME !!! Statut HTTP :", infos.status);
+            const response = await fetch("/userinfo", { method: "GET", credentials: "include" });
+            if (!response.ok) {
                 globalThis.location.href = "/login";
                 return;
             }
-            const userInfos = await infos.json();
+            const userInfos = await response.json();
             username = userInfos.username;
         } catch (error) {
-            console.error("Problème de connexion à l'API : ", error)
+            console.error("Problème de connexion à l'API : ", error);
         }
     }
-    fetchUserInfo();
 
-    /* Dessin sur canvas. */
-    let canvas = document.getElementById("canvas");
-    let canvasContext = canvas.getContext("2d");
-    let previousColor;
-    function erase() {
-        previousColor = canvasContext.strokeStyle;
-        canvasContext.strokeStyle = "white";
-        canvasContext.lineWidth = 20;
-    }
-    function pencil() {
-        canvasContext.strokeStyle = previousColor;
-        canvasContext.lineWidth = 5;
-    }
-    function bucket() {
-        
-    }
-    function changeColor(button) {
-        canvasContext.lineWidth = 5;
-        canvasContext.strokeStyle = getComputedStyle(button).backgroundColor;
-        console.log(getComputedStyle(button).backgroundColor);
-    }
-    function drawReceivedLines(lines) {
-        lines.forEach(segment => {
-            canvasContext.beginPath();
-            canvasContext.strokeStyle = segment.couleur;
-            canvasContext.lineWidth = segment.epaisseur;
-            canvasContext.moveTo(segment.x1, segment.y1);
-            canvasContext.lineTo(segment.x2, segment.y2);
-            canvasContext.stroke();
+    /* Gestion du websocket et des canaux. */
+    function initWebSockets() {
+        socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+        stompClient.debug = null;
+
+        stompClient.connect({}, function () {
+            console.log('Connexion au serveur WebSocket établie.');
+            
+            stompClient.send("/app/room/" + roomCode + "/chat", {}, JSON.stringify({
+                pseudo: username, contenu: "", type: "JOIN"
+            }));
+
+            setupSubscriptions();
+
+            stompClient.send("/app/room/" + roomCode + "/requestHistory", {}, username);
+
+            startDrawingSyncLoop();
         });
     }
-    window.addEventListener('load', function() {
-        canvas.style.pointerEvents = "none";
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-        canvasContext.strokeStyle = "black";
-        canvasContext.lineWidth = 5;
-        let isDrawing = false;
-        let xPos = 0;
-        let yPos = 0;
-        function getCorrectPosition(mouseEvent) {
-            let rectangle = canvas.getBoundingClientRect();
-            return {
-                xPos: (mouseEvent.clientX - rectangle.left) * canvas.width / rectangle.width,
-                yPos: (mouseEvent.clientY - rectangle.top) * canvas.height / rectangle.height
-            };
-        }
-        function initialiseMouse(mouseEvent) {
-            let position = getCorrectPosition(mouseEvent);
-            xPos = position.xPos;
-            yPos = position.yPos;
-            isDrawing = true;
-        }
-        function draw(mouseEvent) {
-            if (!isDrawing) {
-                return;
-            }
-            canvasContext.beginPath();
-            canvasContext.lineCap = "round";
-            canvasContext.moveTo(xPos, yPos);
-            let [lastX, lastY] = [xPos, yPos];
-            let position = getCorrectPosition(mouseEvent);
-            xPos = position.xPos;
-            yPos = position.yPos; 
-            canvasContext.lineTo(xPos, yPos);
-            canvasContext.stroke();
-            canvasContext.closePath();
-            segmentBuffer.push({
-                x1: lastX,
-                y1: lastY,
-                x2: xPos,
-                y2: yPos,
-                couleur: canvasContext.strokeStyle,
-                epaisseur: canvasContext.lineWidth
-            });
-        }
-        function endDrawing(mouseEvent) {
-            draw(mouseEvent);
-            xPos = 0;
-            yPos = 0;
-            isDrawing = false;
-        }
-        canvas.addEventListener("mousedown", initialiseMouse);
-        canvas.addEventListener("mousemove", draw);
-        canvas.addEventListener("mouseup", endDrawing);
-    });
-    
-    /* Connexion socket pour chat et traits. */
-    const socket = new SockJS('/ws');
-    const stompClient = Stomp.over(socket);
-    stompClient.debug = null
-    stompClient.connect({}, function (frame) {
-        console.log('Connection au serveur établie.');
-        const joinMessage = {
-            pseudo: username,
-            contenu: "",
-            type: "JOIN"
-        };
-        stompClient.send("/app/room/" + roomCode + "/chat", {}, JSON.stringify(joinMessage));
-        stompClient.subscribe('/topic/room/' + roomCode + '/draw', function (msg) {
-            const data = JSON.parse(msg.body);
-            drawReceivedLines(data.lignes);
+
+    function setupSubscriptions() {
+        stompClient.subscribe('/topic/room/' + roomCode + '/draw', (msg) => {
+            drawReceivedLines(JSON.parse(msg.body).lignes);
         });
 
-        /* Pour traiter le début et la fin (afficher les écrans et changer la logique). */
-        stompClient.subscribe('/topic/room/' + roomCode + '/status', function(msg) {
+        stompClient.subscribe('/topic/room/' + roomCode + '/status', (msg) => {
             handleStatusUpdate(JSON.parse(msg.body));
         });
-        stompClient.subscribe('/topic/room/' + roomCode + '/secret/' + username, function(msg) {
-            const data = JSON.parse(msg.body);
-            if (data.hasOwnProperty('score')) {
-                document.getElementById("final-score").innerText = "Congratulations ! Your score was : " + data.score;
-                document.getElementById("transition-manche").style.display = "none";
-                return;
+
+        stompClient.subscribe('/topic/room/' + roomCode + '/secret/' + username, (msg) => {
+            handleSecretUpdate(JSON.parse(msg.body));
+        });
+
+        stompClient.subscribe('/topic/room/' + roomCode + '/chat', (msg) => {
+            handleMessage(JSON.parse(msg.body));
+        });
+
+        stompClient.subscribe('/topic/room/' + roomCode + '/requestDrawing/' + username, (msg) => {
+            const history = JSON.parse(msg.body);
+            history.forEach(drawMsg => drawReceivedLines(drawMsg.lignes));
+        });
+    }
+
+    function startDrawingSyncLoop() {
+        setInterval(() => {
+            if (segmentBuffer.length > 0 && stompClient && stompClient.connected) {
+                stompClient.send("/app/room/" + roomCode + "/draw", {}, JSON.stringify({
+                    lignes: segmentBuffer,
+                    pseudo: username
+                }));
+                segmentBuffer = [];
             }
+        }, 100);
+    }
+
+    /* Traitement des événèments de la partie. */
+    function handleStatusUpdate(data) {
+        switch(data.type) {
+            case "TIMER":
+                document.getElementById("timer-text").innerText = data.contenu;
+                break;
+            case "FIN_PARTIE":
+                document.getElementById("ecran-fin").style.display = "flex";
+                break;
+            case "FIN_MANCHE":
+                afficherEcranTransition("The word was : " + data.contenu);
+                break;
+            case "DEBUT_MANCHE":
+                preparerNouvelleManche();
+                break;
+        }
+
+        if (data.type === "DEBUT_MANCHE" || data.hasOwnProperty('dessinateur')) {
+            updateRolesUI(data);
+        }
+    }
+
+    function handleSecretUpdate(data) {
+        if (data.hasOwnProperty('score')) {
+            document.getElementById("final-score").innerText = "Congratulations ! Your score was : " + data.score;
+            document.getElementById("transition-manche").style.display = "none";
+        } else if (data.hasOwnProperty('mot')) {
             document.querySelector(".word-guess-text").innerText = data.mot;
             document.getElementById("word-to-draw-container").innerText = "Your word is : " + data.mot;
-        });
-        stompClient.subscribe('/topic/room/' + roomCode + '/chat', function (message) {
-            const data = JSON.parse(message.body);
-            handleMessage(data);
-        });
-        stompClient.subscribe('/topic/room/' + roomCode + '/requestDrawing/' + username, function (msg) {
-            const history = JSON.parse(msg.body);
-            history.forEach(drawMsg => {
-                drawReceivedLines(drawMsg.lignes);
-            });
-        });
-        stompClient.send("/app/room/" + roomCode + "/requestHistory", {}, username);
-    });
-    function handleStatusUpdate(data) {
-        if (data.type == "TIMER") {
-            document.getElementById("timer-text").innerText = data.contenu;
-            return;
         }
-        if (data.type == "FIN_PARTIE") {
-            document.getElementById("ecran-fin").style.display = "flex";
-            return;
-        }
-        if (data.type == "FIN_MANCHE") {
-            document.getElementById("transition-manche").style.display = "block";
-            document.getElementById("word-was").innerText = "The word was : " + data.contenu;
-            return;
-        }
-        const isDessinateur = (data.dessinateur == username);
+    }
+
+    function updateRolesUI(data) {
+        const isDessinateur = (data.dessinateur === username);
+        const inputMessage = document.getElementById("message");
+        
         canvas.style.pointerEvents = isDessinateur ? "auto" : "none";
-        document.getElementById("message").disabled = isDessinateur;
-        document.getElementById("message").placeholder = isDessinateur ? "You're drawing !" : "Type in your guess";
+        inputMessage.disabled = isDessinateur;
+        inputMessage.placeholder = isDessinateur ? "You're drawing !" : "Type in your guess";
+        
+        document.querySelector(".word-guess-letter-count").innerText = data.tailleMot;
+
         if (!isDessinateur) {
             document.querySelector(".word-guess-text").innerText = "_ ".repeat(data.tailleMot);
             document.getElementById("word-to-draw-container").innerText = "You'll be guessing soon !";
         }
-        document.querySelector(".word-guess-letter-count").innerText = data.tailleMot;
-        if (data.type == "DEBUT_MANCHE") {
-            canvasContext.clearRect(0, 0, canvas.width, canvas.height);
-            if (firstTime) {
-                firstTime = false;
-                document.getElementById("word-was").innerText = "";
-                document.getElementById("transition-manche").style.display = "block";
-            }
-            setTimeout(() => {document.getElementById("transition-manche").style.display = "none";}, 2500);
-        }
     }
-    function handleMessage(data) {
-        if (data.type == 'SUCCES' || data.type == 'CHAT') {
-            addMessageToChat(data);
+
+    function preparerNouvelleManche() {
+        canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+        if (firstTime) {
+            firstTime = false;
+            afficherEcranTransition("");
         }
-        if (data.type == 'JOIN' || data.type == 'LEAVE') {
+        setTimeout(() => { document.getElementById("transition-manche").style.display = "none"; }, 2500);
+    }
+
+    function afficherEcranTransition(texteHaut) {
+        document.getElementById("transition-manche").style.display = "block";
+        document.getElementById("word-was").innerText = texteHaut;
+    }
+
+    /* Gestion de l'interface et du chat. */
+    function handleMessage(data) {
+        if (data.type === 'SUCCES' || data.type === 'CHAT') {
+            addMessageToChat(data);
+        } else if (data.type === 'JOIN' || data.type === 'LEAVE') {
             playerCount = data.contenu;
             document.getElementById("playerCount").innerText = playerCount;
         }
     }
+
     function addMessageToChat(data) {
         const messagesArea = document.getElementById('messages-area');
+        
         const messageDiv = document.createElement('div');
         messageDiv.className = 'chat-message';
+        
         const contentDiv = document.createElement('div');
         contentDiv.className = 'chat-content';
-        if (data.type == 'SUCCES') {
-            contentDiv.classList.add('correct');
-        }
+        if (data.type === 'SUCCES') contentDiv.classList.add('correct');
+        
         const nameH1 = document.createElement('h1');
         nameH1.className = 'player-name';
         nameH1.textContent = data.pseudo;
+        
         const textH1 = document.createElement('h1');
         textH1.className = 'message-content';
         textH1.textContent = data.contenu;
+        
         contentDiv.appendChild(nameH1);
         contentDiv.appendChild(textH1);
         messageDiv.appendChild(contentDiv);
         messagesArea.appendChild(messageDiv);
+
         while (messagesArea.scrollHeight > messagesArea.clientHeight) {
             messagesArea.firstChild.remove();
         }
     }
-    function sendChatMessage() {
+
+    function sendChatMessage(event) {
         event.preventDefault();
+        const inputField = document.getElementById("message");
+        if (inputField.value.trim() === "") return;
+
         const messageToSend = {
             pseudo: username,
-            contenu: document.getElementById("message").value,
+            contenu: inputField.value,
             type: "CHAT"
         };
+        
         stompClient.send("/app/room/" + roomCode + "/chat", {}, JSON.stringify(messageToSend));
-        document.getElementById("message").value = "";
+        inputField.value = "";
     }
+
     function startGame() {
         if (stompClient && stompClient.connected) {
             stompClient.send("/app/room/" + roomCode + "/start", {}, JSON.stringify({}));
@@ -643,14 +615,105 @@
         }
     }
 
-    /* Envoi des tracés. */
-    setInterval(() => {
-        if (segmentBuffer.length > 0 && stompClient && stompClient.connected) {
-            stompClient.send("/app/room/" + roomCode + "/draw", {}, JSON.stringify({
-                lignes: segmentBuffer,
-                pseudo: username}));
-            segmentBuffer = [];
+    function returnToLobby() {
+        globalThis.location.href = "/lobby";
+    }
+
+    /* Gestion du canvas et du dessin. */
+    function initCanvas() {
+        canvas = document.getElementById("canvas");
+        canvasContext = canvas.getContext("2d");
+        
+        canvas.style.pointerEvents = "none";
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        
+        canvasContext.strokeStyle = previousColor;
+        canvasContext.lineWidth = 5;
+        canvasContext.lineCap = "round";
+
+        let isDrawing = false;
+        let xPos = 0, yPos = 0;
+
+        function getCorrectPosition(mouseEvent) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                xPos: (mouseEvent.clientX - rect.left) * canvas.width / rect.width,
+                yPos: (mouseEvent.clientY - rect.top) * canvas.height / rect.height
+            };
         }
-    }, 100);
+
+        canvas.addEventListener("mousedown", (e) => {
+            const pos = getCorrectPosition(e);
+            xPos = pos.xPos;
+            yPos = pos.yPos;
+            isDrawing = true;
+        });
+
+        canvas.addEventListener("mousemove", (e) => {
+            if (!isDrawing) return;
+
+            canvasContext.beginPath();
+            canvasContext.moveTo(xPos, yPos);
+
+            const lastX = xPos, lastY = yPos;
+            const pos = getCorrectPosition(e);
+            xPos = pos.xPos;
+            yPos = pos.yPos;
+            
+            canvasContext.lineTo(xPos, yPos);
+            canvasContext.stroke();
+            canvasContext.closePath();
+            
+            segmentBuffer.push({
+                x1: lastX, y1: lastY,
+                x2: xPos, y2: yPos,
+                couleur: canvasContext.strokeStyle,
+                epaisseur: canvasContext.lineWidth
+            });
+        });
+
+        const stopDrawing = () => { isDrawing = false; };
+        canvas.addEventListener("mouseup", stopDrawing);
+        canvas.addEventListener("mouseleave", stopDrawing);
+    }
+
+    function drawReceivedLines(lines) {
+        lines.forEach(segment => {
+            canvasContext.beginPath();
+            canvasContext.lineCap = "round";
+            canvasContext.strokeStyle = segment.couleur;
+            canvasContext.lineWidth = segment.epaisseur;
+            canvasContext.moveTo(segment.x1, segment.y1);
+            canvasContext.lineTo(segment.x2, segment.y2);
+            canvasContext.stroke();
+            canvasContext.closePath();
+        });
+    }
+
+    /* Outils de dessin. */
+    function erase() {
+        if (canvasContext.strokeStyle !== "white" && canvasContext.strokeStyle !== "#ffffff" && canvasContext.strokeStyle !== "rgb(255, 255, 255)") {
+            previousColor = canvasContext.strokeStyle;
+        }
+        canvasContext.strokeStyle = "white";
+        canvasContext.lineWidth = 20;
+    }
+
+    function pencil() {
+        canvasContext.strokeStyle = previousColor;
+        canvasContext.lineWidth = 5;
+    }
+
+    function bucket() {
+        /* A implémenter. */
+    }
+
+    function changeColor(button) {
+        const selectedColor = getComputedStyle(button).backgroundColor;
+        canvasContext.strokeStyle = selectedColor;
+        previousColor = selectedColor;
+        canvasContext.lineWidth = 5;
+    }
 </script>
 </html>
