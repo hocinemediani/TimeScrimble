@@ -224,19 +224,21 @@
         z-index: 9000;
     }
     #word-to-draw-container {
+        width: 100%;
         position: absolute;
-        top: 52%;
+        top: 55%;
         left: 50%;
-        transform: translate(-50%, -52%);
+        transform: translate(-50%, -55%);
         margin: 0;
         text-align: center;
         color: white;
     }
     #word-was {
+        width: 100%;
         position: absolute;
-        top: 48%;
+        top: 45%;
         left: 50%;
-        transform: translate(-50%, -48%);
+        transform: translate(-50%, -45%);
         margin: 0;
         text-align: center;
         color: white;
@@ -384,6 +386,7 @@
     let playerCount;
     let segmentBuffer = [];
     let roomName;
+    let firstTime = true;
     document.querySelectorAll('.chat-message').forEach(msg => msg.remove());
     async function fetchRoomInfo() {
         roomCode = new URLSearchParams(globalThis.location.search).get("code");
@@ -567,13 +570,10 @@
             document.getElementById("ecran-fin").style.display = "flex";
             return;
         }
-        if (data.type == "DEBUT_MANCHE") {
-            canvasContext.clearRect(0, 0, canvas.width, canvas.height);
-            setTimeout(() => {document.getElementById("transition-manche").style.display = "none";}, 2500);
-        }
         if (data.type == "FIN_MANCHE") {
             document.getElementById("transition-manche").style.display = "block";
             document.getElementById("word-was").innerText = "The word was : " + data.contenu;
+            return;
         }
         const isDessinateur = (data.dessinateur == username);
         canvas.style.pointerEvents = isDessinateur ? "auto" : "none";
@@ -584,6 +584,15 @@
             document.getElementById("word-to-draw-container").innerText = "You'll be guessing soon !";
         }
         document.querySelector(".word-guess-letter-count").innerText = data.tailleMot;
+        if (data.type == "DEBUT_MANCHE") {
+            canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+            if (firstTime) {
+                firstTime = false;
+                document.getElementById("word-was").innerText = "";
+                document.getElementById("transition-manche").style.display = "block";
+            }
+            setTimeout(() => {document.getElementById("transition-manche").style.display = "none";}, 2500);
+        }
     }
     function handleMessage(data) {
         if (data.type == 'SUCCES' || data.type == 'CHAT') {

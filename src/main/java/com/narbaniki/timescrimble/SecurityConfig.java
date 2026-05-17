@@ -16,6 +16,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+
     /* Truc de fou malade pour enlever la demande de login lors du lancement de Spring. */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
@@ -23,7 +24,6 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
             .formLogin(form -> form.disable())
             .httpBasic(AbstractHttpConfigurer::disable);
-
         return http.build();
     }
 }
