@@ -490,7 +490,7 @@
             roomName = infos.name;
             document.title = infos.name;
 
-            if (playerCount <= 1) {
+            if (username === infos.host) {
                 document.getElementById("btn-start").style.display = "block";
             }
         } catch (error) {
@@ -556,6 +556,44 @@
         });
     }
 
+    window.addEventListener('DOMContentLoaded', () => {
+        const entries = performance.getEntriesByType('navigation');
+        const navType = entries.length > 0 ? entries[0].type : undefined;
+
+        if (navType === 'reload') {
+            console.log("Rechargement détecté pour la room :", roomCode);
+            const formData = new FormData();
+            formData.append('code', roomCode);
+            fetch('/join', {
+                method: 'POST',
+                body: formData,
+                credentials: "include"
+            })
+            .then(async (response) => {
+                if (response.ok) {
+                    console.log("Reconnexion réussie après refresh !");
+                } else {
+                    const errorMessage = await response.text();
+                    alert("Impossible de vous reconnecter à la partie : " + errorMessage);
+                    window.location.href = '/lobby'; 
+                }
+            })
+            .catch(error => {
+                console.error("Erreur réseau lors de la reconnexion :", error);
+            });
+        }
+    });
+
+    window.addEventListener('beforeunload', function () {
+        if (stompClient && stompClient.connected) {
+            try {
+                stompClient.send("/app/room/" + roomCode + "/chat", {}, JSON.stringify({ pseudo: username, contenu: "", type: "LEAVE" }));
+            } catch (e) {
+                console.error('Impossible d\'envoyer LEAVE avant de quitter la page', e);
+            }
+        }
+    });
+
     function startDrawingSyncLoop() {
         setInterval(() => {
             if (segmentBuffer.length > 0 && stompClient && stompClient.connected) {
@@ -597,6 +635,12 @@
         } else if (data.hasOwnProperty('mot')) {
             document.querySelector(".word-guess-text").innerText = data.mot;
             document.getElementById("word-to-draw-container").innerText = "Your word is : " + data.mot;
+        } else if (data.hasOwnProperty('host')) {
+            if (username === data.host) {
+                document.getElementById("btn-start").style.display = "block";
+            } else {
+                document.getElementById("btn-start").style.display = "none";
+            }
         }
     }
 

@@ -127,6 +127,7 @@ public class Facade {
         infos.put("code", code);
         infos.put("playerCount", Integer.toString(partie.getJoueurs().size()));
         infos.put("name", partie.getNom());
+        infos.put("host", partie.getHost().getPseudo());
         return infos;
     }
 

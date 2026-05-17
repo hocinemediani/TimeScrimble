@@ -236,6 +236,7 @@ public class PartieService {
         messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/status", (Object) status);
         Map<String, String> secret = new HashMap<>();
         secret.put("mot", partie.getMotADeviner());
+        secret.put("host", partie.getHost().getPseudo());
         messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/secret/" + dessinateurPseudo, secret);
     }
 
@@ -302,6 +303,34 @@ public class PartieService {
         }
         if ("JOIN".equals(message.getType())) {
             synchroniserDessinNouveauJoueur(codePartie, pseudoInitial);
+        }
+        if ("LEAVE".equals(message.getType())) {
+            boolean etaitHost = joueur.equals(partie.getHost());
+            boolean etaitDessinateur = joueur.isEstDessinateur();
+            partie.retirerJoueur(joueur);
+            partieRepository.save(partie);
+            gererAffichageRejoindreQuitter(partie, message);
+            
+            if (partie.getJoueurs().isEmpty()) {
+                partieRepository.delete(partie);
+                return;
+            }
+
+            if (etaitHost) {
+                Map<String, String> secret = new HashMap<>();
+                secret.put("host", partie.getHost().getPseudo());
+                messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/secret/" + partie.getHost().getPseudo(), secret);
+            }
+            
+            if (etaitDessinateur && partie.getStatut() == StatutPartie.EN_COURS) {
+                gererFinManche(codePartie, partie);
+                return;
+            }
+
+            if (partie.getStatut() == StatutPartie.EN_COURS && partie.getJoueurs().size() < 2) {
+                finirPartie(codePartie, partie);
+            }
+            return;
         }
     }
 
