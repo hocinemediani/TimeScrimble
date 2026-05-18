@@ -199,8 +199,8 @@
     }
     canvas {
         background-color: var(--textbox-color);
-        width: 100%;
-        height: 100%;
+        max-width: 100%;
+        aspect-ratio: 1200 / 900;
         overflow: hidden;
         cursor: crosshair;
         touch-action: none;
@@ -446,7 +446,7 @@
                 </div>
                 <div class="timer-container">
                     <img class="timer-image" src="/timer.png" alt="Timer">
-                    <h1 id="timer-text">46</h1>
+                    <h1 id="timer-text">_</h1>
                 </div>
             </div>
         </div>
@@ -472,8 +472,8 @@
     window.addEventListener('load', async () => {
         document.querySelectorAll('.chat-message').forEach(msg => msg.remove());
         
-        await fetchRoomInfo();
         await fetchUserInfo();
+        await fetchRoomInfo();
         initCanvas();
         initWebSockets();
     });
@@ -489,8 +489,7 @@
             playerCount = infos.playerCount;
             roomName = infos.name;
             document.title = infos.name;
-
-            if (username === infos.host) {
+            if (username == infos.host && infos.statut == "attente") {
                 document.getElementById("btn-start").style.display = "block";
             }
         } catch (error) {
@@ -744,8 +743,8 @@
         canvasContext = canvas.getContext("2d");
         
         canvas.style.pointerEvents = "none";
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
+        canvas.width = 1200;
+        canvas.height = 900;
         
         canvasContext.strokeStyle = previousColor;
         canvasContext.lineWidth = 5;

@@ -128,6 +128,9 @@ public class Facade {
         infos.put("playerCount", Integer.toString(partie.getJoueurs().size()));
         infos.put("name", partie.getNom());
         infos.put("host", partie.getHost().getPseudo());
+        String statut = (partie.getStatut().equals(StatutPartie.ATTENTE)) ? "attente" : "autre";
+        System.out.println("\n\n\n\n" + statut + "\n\n\n\n\n");
+        infos.put("statut", statut);
         return infos;
     }
 

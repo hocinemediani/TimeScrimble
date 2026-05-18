@@ -189,7 +189,7 @@ public class Partie {
      * @throws IllegalStateException Si la partie a déjà commencé ou si elle est pleine
      */
     public void ajouterJoueur(Joueur joueur) throws IllegalStateException {
-        if (statut != StatutPartie.ATTENTE) {
+        if (statut == StatutPartie.TERMINEE) {
             throw new IllegalStateException("Impossible de rejoindre une partie déjà lancée ou terminée.");
         }
         if (joueurs.size() >= nbJoueursMax) {
