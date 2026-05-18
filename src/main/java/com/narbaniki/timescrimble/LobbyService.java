@@ -2,6 +2,7 @@ package com.narbaniki.timescrimble;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /** La classe LobbyService encapsule la logique métier liée à la gestion du lobby.<br>
  * Elle permet d'effectuer les opérations principales telles que :<br>
@@ -60,6 +61,7 @@ public class LobbyService {
      * @throws IllegalArgumentException Si aucune partie ne correspond au code fourni
      * @throws IllegalStateException Si la partie a déjà atteint son nombre maximum de joueurs
      */
+    @Transactional
     public void join(String code, Utilisateur user) {
         Partie partie = partieRepository.findByCode(code);
         if (partie == null) {

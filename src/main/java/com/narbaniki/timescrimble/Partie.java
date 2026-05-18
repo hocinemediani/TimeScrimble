@@ -190,10 +190,15 @@ public class Partie {
      */
     public void ajouterJoueur(Joueur joueur) throws IllegalStateException {
         if (statut == StatutPartie.TERMINEE) {
-            throw new IllegalStateException("Impossible de rejoindre une partie déjà lancée ou terminée.");
+            throw new IllegalStateException("Impossible de rejoindre une partie déjà terminée.");
         }
         if (joueurs.size() >= nbJoueursMax) {
             throw new IllegalStateException("La partie est complète (" + nbJoueursMax + "/" + nbJoueursMax + ").");
+        }
+        for (Joueur joueurActuel : joueurs) {
+            if (joueurActuel.getPseudo().equals(joueur.getPseudo())) {
+                return;
+            }
         }
         joueur.setPartie(this);
         joueurs.add(joueur);

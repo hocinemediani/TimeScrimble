@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -23,7 +24,8 @@ import jakarta.validation.constraints.Size;
  * Elle fait le lien entre un Utilisateur persistant et une Partie.
  */
 @Entity
-@Table(name = "joueurs")
+@Table(name = "joueurs", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"partie_id", "utilisateur_id"})})
 public class Joueur {
 
     /** L'identifiant unique du joueur dans la base de données. */
