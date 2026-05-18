@@ -555,11 +555,11 @@
         });
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    globalThis.addEventListener('DOMContentLoaded', () => {
         const entries = performance.getEntriesByType('navigation');
         const navType = entries.length > 0 ? entries[0].type : undefined;
 
-        if (navType === 'reload') {
+        if (navType == 'reload') {
             console.log("Rechargement détecté pour la room :", roomCode);
             const formData = new FormData();
             formData.append('code', roomCode);
@@ -825,7 +825,7 @@
     }
 
     function bucket() {
-        /* A implémenter. */
+        canvasContext.clearRect(0, 0, canvas.width, canvas.height);
     }
 
     function changeColor(button) {

@@ -69,7 +69,7 @@ public class LobbyService {
         if (partie.getJoueurs().size() >= partie.getNbJoueursMax()) {
             System.out.println("La partie est déjà pleine.");
             throw new IllegalStateException("La partie est déjà pleine.");
-        }    
+        }
         Joueur joueur = new Joueur(user, partie);
         partie.ajouterJoueur(joueur);
         partieRepository.save(partie);
