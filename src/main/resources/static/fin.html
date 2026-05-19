@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="/favicon.png">
+    <title>TimeScrimble - Fin de partie</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Balsamiq+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+ 
+        body {
+            background: var(--main-color);
+            font-family: 'Balsamiq Sans', sans-serif;
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 40px 60px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+ 
+        .page-title {
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            opacity: 0;
+            animation: fadeDown 0.6s ease forwards;
+        }
+ 
+        .page-subtitle {
+            font-size: 1.2rem;
+            color: var(--light-color);
+            text-align: center;
+            margin-bottom: 50px;
+            opacity: 0;
+            animation: fadeDown 0.6s ease 0.15s forwards;
+        }
+ 
+        .podium-wrapper {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 0;
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 50px;
+        }
+ 
+        .podium-slot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 200px;
+        }
+ 
+        .player-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 10px;
+            opacity: 0;
+        }
+ 
+        .crown-img {
+            width: 70px;
+            height: auto;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+            margin-bottom: 6px;
+        }
+ 
+        .player-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: center;
+            word-break: break-word;
+            max-width: 160px;
+        }
+ 
+        .player-score {
+            font-size: 0.95rem;
+            color: var(--light-color);
+            margin-top: 2px;
+        }
+ 
+        .podium-bar {
+            width: 100%;
+            border-radius: 8px 8px 0 0;
+            transform: scaleY(0);
+            transform-origin: bottom;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+ 
+        .rank-label {
+            font-size: 2rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.4);
+        }
+ 
+        .slot-1 { order: 2; }
+        .slot-1 .podium-bar {
+            height: 220px;
+            background: linear-gradient(180deg, #FFD700 0%, #FEC300 60%, #D4A800 100%);
+            box-shadow: 0 -6px 30px rgba(254,195,0,0.4);
+        }
+        .slot-1 .player-info { animation: fadeUp 0.5s ease 0.8s forwards; }
+        .slot-1 .podium-bar   { animation: growUp 0.7s cubic-bezier(.22,1,.36,1) 0.3s forwards; }
+ 
+        .slot-2 { order: 1; }
+        .slot-2 .podium-bar {
+            height: 170px;
+            background: linear-gradient(180deg, #E8E8E8 0%, #C1BFBF 60%, #A0A0A0 100%);
+            box-shadow: 0 -6px 20px rgba(193,191,191,0.3);
+        }
+        .slot-2 .player-info { animation: fadeUp 0.5s ease 1.0s forwards; }
+        .slot-2 .podium-bar   { animation: growUp 0.7s cubic-bezier(.22,1,.36,1) 0.5s forwards; }
+ 
+        .slot-3 { order: 3; }
+        .slot-3 .podium-bar {
+            height: 130px;
+            background: linear-gradient(180deg, #FEC07A 0%, #FEB063 60%, #D48040 100%);
+            box-shadow: 0 -6px 20px rgba(254,176,99,0.3);
+        }
+        .slot-3 .player-info { animation: fadeUp 0.5s ease 1.2s forwards; }
+        .slot-3 .podium-bar   { animation: growUp 0.7s cubic-bezier(.22,1,.36,1) 0.7s forwards; }
+ 
+        /*moins de 3 joueurs */
+        .podium-slot.empty { display: none; }
+ 
+        .podium-wrapper.solo { justify-content: center; }
+ 
+        /* > 3 joueurs */
+        .ranking-section {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 50px;
+            opacity: 0;
+            animation: fadeUp 0.5s ease 1.5s forwards;
+        }
+ 
+        .ranking-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: var(--light-color);
+            text-align: center;
+        }
+ 
+        .ranking-row {
+            display: flex;
+            align-items: center;
+            background: var(--secondary-color);
+            border-radius: 0.6rem;
+            padding: 10px 18px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            gap: 14px;
+        }
+ 
+        .ranking-pos  { font-size: 1.1rem; font-weight: 700; min-width: 30px; color: var(--light-color); }
+        .ranking-name { flex: 1; font-size: 1.1rem; }
+        .ranking-score{ font-size: 1rem; color: var(--light-color); }
+ 
+        .buttons-wrapper {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            opacity: 0;
+            animation: fadeUp 0.5s ease 1.7s forwards;
+        }
+ 
+        .btn-replay {
+            background-color: var(--success-color);
+            color: #ffffff;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 0.6rem;
+            font-family: 'Balsamiq Sans', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(20,187,65,0.4);
+        }
+        .btn-replay:hover  { box-shadow: 0 6px 20px rgba(20,187,65,0.55); }
+        .btn-replay:active { transform: scale(0.95); }
+ 
+        .btn-menu {
+            background-color: var(--error-color);
+            color: #ffffff;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 0.6rem;
+            font-family: 'Balsamiq Sans', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(255,0,4,0.35);
+        }
+        .btn-menu:hover  { box-shadow: 0 6px 20px rgba(255,0,4,0.5); }
+        .btn-menu:active { transform: scale(0.95); }
+ 
+        @keyframes growUp {
+            from { transform: scaleY(0); }
+            to   { transform: scaleY(1); }
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-15px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 24px 16px 48px; }
+            .page-title { font-size: 2rem; }
+            .crown-img  { width: 50px; }
+            .player-name { font-size: 0.95rem; }
+            .slot-1 .podium-bar { height: 160px; }
+            .slot-2 .podium-bar { height: 120px; }
+            .slot-3 .podium-bar { height: 90px; }
+            .btn-replay, .btn-menu { font-size: 1rem; padding: 12px 22px; }
+        }
+    </style>
+</head>
+<body>
+ 
+    <h1 class="page-title">🎉 Fin de partie !</h1>
+    <p class="page-subtitle" id="subtitle">Voici le classement final</p>
+ 
+    <div class="podium-wrapper" id="podium">
+ 
+        <div class="podium-slot slot-2" id="slot-2">
+            <div class="player-info">
+                <img src="couronne_argent.png" alt="Argent" class="crown-img">
+                <span class="player-name" id="name-2">—</span>
+                <span class="player-score" id="score-2"></span>
+            </div>
+            <div class="podium-bar"><span class="rank-label">2</span></div>
+        </div>
+ 
+        <div class="podium-slot slot-1" id="slot-1">
+            <div class="player-info">
+                <img src="couronne_or.png" alt="Or" class="crown-img">
+                <span class="player-name" id="name-1">—</span>
+                <span class="player-score" id="score-1"></span>
+            </div>
+            <div class="podium-bar"><span class="rank-label">1</span></div>
+        </div>
+ 
+        <div class="podium-slot slot-3" id="slot-3">
+            <div class="player-info">
+                <img src="couronne_bronze.png" alt="Bronze" class="crown-img">
+                <span class="player-name" id="name-3">—</span>
+                <span class="player-score" id="score-3"></span>
+            </div>
+            <div class="podium-bar"><span class="rank-label">3</span></div>
+        </div>
+ 
+    </div>
+ 
+    <div class="ranking-section" id="ranking-section" style="display:none;">
+        <div class="ranking-title">Classement complet</div>
+        <div id="ranking-list"></div>
+    </div>
+
+    <div class="buttons-wrapper">
+        <button class="btn-replay" onclick="rejouer()">Rejouer avec le groupe</button>
+        <button class="btn-menu"   onclick="retourMenu()">Retour au menu principal</button>
+    </div>
+ 
+    <script>
+        const params   = new URLSearchParams(globalThis.location.search);
+        const gameCode = params.get('code');
+ 
+        function loadResults() {
+            const stored = gameCode
+                ? sessionStorage.getItem('finResults_' + gameCode)
+                : null;
+ 
+            if (stored) {
+                afficherResultats(JSON.parse(stored));
+                sessionStorage.removeItem('finResults_' + gameCode);
+            } else {
+                console.warn('sessionStorage vide, tentative via /results');
+                loadResultsFromApi();
+            }
+        }
+ 
+        async function loadResultsFromApi() {
+            if (!gameCode) return;
+            try {
+                const res = await fetch('/results?code=' + gameCode, { credentials: 'include' });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                afficherResultats(await res.json());
+            } catch (err) {
+                console.error('Impossible de charger les résultats :', err);
+            }
+        }
+ 
+        function afficherResultats(joueurs) {
+            if (!joueurs || joueurs.length === 0) return;
+ 
+            joueurs.sort((a, b) => b.scoreSession - a.scoreSession);
+ 
+            const nbJoueurs = joueurs.length;
+            const podium    = document.getElementById('podium');
+ 
+            for (let rang = 1; rang <= 3; rang++) {
+                const slot = document.getElementById('slot-' + rang);
+                if (rang > nbJoueurs) {
+                    slot.classList.add('empty');
+                    continue;
+                }
+                const joueur = joueurs[rang - 1];
+                document.getElementById('name-'  + rang).textContent = joueur.pseudo;
+                document.getElementById('score-' + rang).textContent = joueur.scoreSession + ' pts';
+            }
+ 
+            if (nbJoueurs === 1) podium.classList.add('solo');
+ 
+            document.getElementById('subtitle').textContent =
+                '🏆 ' + joueurs[0].pseudo + ' remporte la partie !';
+ 
+            if (nbJoueurs > 3) {
+                const section = document.getElementById('ranking-section');
+                const list    = document.getElementById('ranking-list');
+                section.style.display = 'block';
+ 
+                joueurs.slice(3).forEach((joueur, i) => {
+                    const rang = i + 4;
+                    const row  = document.createElement('div');
+                    row.className = 'ranking-row';
+                    row.innerHTML =
+                        '<span class="ranking-pos">' + rang + '.</span>' +
+                        '<span class="ranking-name">' + joueur.pseudo + '</span>' +
+                        '<span class="ranking-score">' + joueur.scoreSession + ' pts</span>';
+                    list.appendChild(row);
+                });
+            }
+        }
+ 
+        function rejouer() {
+            globalThis.location.href = '/lobby';
+        }
+ 
+        function retourMenu() {
+            globalThis.location.href = '/lobby';
+        }
+ 
+        loadResults();
+    </script>
+</body>
+</html>
+ 

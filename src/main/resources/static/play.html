@@ -612,7 +612,17 @@
                 document.getElementById("timer-text").innerText = data.contenu;
                 break;
             case "FIN_PARTIE":
-                document.getElementById("ecran-fin").style.display = "flex";
+                if (data.leaderboard) {
+                    sessionStorage.setItem('finResults_' + roomCode, JSON.stringify(data.leaderboard));
+                }
+                if (data.nom) {
+                    sessionStorage.setItem('finGameNom_'   + roomCode, data.nom);
+                    sessionStorage.setItem('finGamePrivee_' + roomCode, data.estPrivee);
+                    sessionStorage.setItem('finGameMax_'   + roomCode, data.nbJoueursMax);
+                }
+                setTimeout(() => {
+                    window.location.href = '/fin?code=' + roomCode;
+                }, 1500);
                 break;
             case "FIN_MANCHE":
                 afficherEcranTransition("The word was : " + data.contenu);

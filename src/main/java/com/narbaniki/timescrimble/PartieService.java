@@ -3,7 +3,9 @@ package com.narbaniki.timescrimble;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,7 +59,6 @@ public class PartieService {
 
     /** Dictionnaire associant à chaque code de partie le temps restant (en secondes) pour la manche. */
     private final Map<String, Integer> tempsRestant = new ConcurrentHashMap<>();
-
 
     /** Sauvegarde un message de dessin (trait) en mémoire pour une partie donnée.<br>
      * Cela permet d'envoyer l'historique complet du dessin aux joueurs rejoignant la partie en cours.
@@ -153,16 +154,26 @@ public class PartieService {
         stopTimer(codePartie);
         List<Joueur> joueursCopie = new ArrayList<>(partie.getJoueurs());
         List<String> leaderboard = partie.getLeaderboard();
+        List<Map<String, Object>> resultats = joueursCopie.stream().sorted(Comparator.comparingInt(Joueur::getScoreSession).reversed()).map(j -> {
+                Map<String, Object> entree = new LinkedHashMap<>();
+                entree.put("pseudo", j.getPseudo());
+                entree.put("scoreSession", j.getScoreSession());
+                return entree;
+            })
+            .toList();
+
+        String nomPartie      = partie.getNom();
+        boolean estPrivee     = partie.isEstPrivee();
+        int nbJoueursMax      = partie.getNbJoueursMax();
         for (Joueur joueur : joueursCopie) {
             envoyerScoreFinal(codePartie, joueur);
             mettreAJourStatistiquesUtilisateur(joueur, leaderboard);
             partie.retirerJoueur(joueur);
         }
         partieRepository.save(partie);
-        diffuserFinPartie(codePartie);
+        diffuserFinPartie(codePartie, resultats, nomPartie, estPrivee, nbJoueursMax);
         partieRepository.delete(partie);
     }
-
 
     /** Envoie secrètement le score final d'un joueur à la fin de la partie.
      * @param codePartie Le code de la partie
@@ -194,10 +205,15 @@ public class PartieService {
 
     /** Notifie tous les clients de la salle que la partie est officiellement terminée.
      * @param codePartie Le code de la partie
+     * *@param resultats La liste des joueurs triée par score décroissant
      */
-    private void diffuserFinPartie(String codePartie) {
+    private void diffuserFinPartie(String codePartie, List<Map<String, Object>> resultats, String nom, boolean estPrivee, int nbJoueursMax) {
         Map<String, Object> status = new HashMap<>();
         status.put("type", "FIN_PARTIE");
+        status.put("leaderboard", resultats);
+        status.put("nom", nom);
+        status.put("estPrivee", estPrivee);
+        status.put("nbJoueursMax", nbJoueursMax);
         messagingTemplate.convertAndSend("/topic/room/" + codePartie + "/status", (Object) status);
     }
 
