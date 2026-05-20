@@ -50,7 +50,7 @@ the more points you'll be able to grab. Rise to the top by being the best all-ar
 | Date       | Milestone                   | Status    |
 |------------|-----------------------------|-----------|
 | 2026-02 | Project initialized          | ✅ Done     |
-| 2025-05 | Project Due                  | ✅ Done     |
+| 2026-05 | Project Due                  | ✅ Done     |
 | 2026    | Continuation of the project  | 🟧 To do    |
 ---
 
