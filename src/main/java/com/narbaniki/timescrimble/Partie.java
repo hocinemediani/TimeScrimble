@@ -3,6 +3,7 @@ package com.narbaniki.timescrimble;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -90,6 +91,8 @@ public class Partie {
     /** Le nombre total de manches ayant déjà été jouées dans cette partie. */
     private int manchesJouees = 0;
 
+    /** Liste des joueurs s'ayant connecté au moins une fois à la partie. */
+    private final HashMap<String, Integer> tousJoueurs = new HashMap<>();
 
     /** Méthode exécutée automatiquement avant l'insertion en base de données.<br>
      * Elle initialise la date de création et génère un code d'accès unique à 6 caractères.
@@ -199,6 +202,9 @@ public class Partie {
             if (joueurActuel.getPseudo().equals(joueur.getPseudo())) {
                 return;
             }
+            if (tousJoueurs.containsKey(joueur.getPseudo())) {
+                joueur.setPoints(tousJoueurs.get(joueur.getPseudo()));
+            }
         }
         joueur.setPartie(this);
         joueurs.add(joueur);
@@ -210,6 +216,7 @@ public class Partie {
      */
     public void retirerJoueur(Joueur joueur) {
         joueur.setPartie(null);
+        tousJoueurs.put(joueur.getPseudo(), joueur.getScoreSession());
         joueurs.remove(joueur);
     }
 

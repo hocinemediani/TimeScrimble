@@ -162,9 +162,9 @@ public class PartieService {
             })
             .toList();
 
-        String nomPartie      = partie.getNom();
-        boolean estPrivee     = partie.isEstPrivee();
-        int nbJoueursMax      = partie.getNbJoueursMax();
+        String nomPartie = partie.getNom();
+        boolean estPrivee = partie.isEstPrivee();
+        int nbJoueursMax = partie.getNbJoueursMax();
         for (Joueur joueur : joueursCopie) {
             envoyerScoreFinal(codePartie, joueur);
             mettreAJourStatistiquesUtilisateur(joueur, leaderboard);
@@ -346,7 +346,6 @@ public class PartieService {
             if (partie.getStatut() == StatutPartie.EN_COURS && partie.getJoueurs().size() < 2) {
                 finirPartie(codePartie, partie);
             }
-            return;
         }
     }
 
