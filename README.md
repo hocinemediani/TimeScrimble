@@ -83,11 +83,6 @@ the more points you'll be able to grab. Rise to the top by being the best all-ar
 ---
 
 
-## 📜 License
-This project is open-source under the [MIT License](LICENSE).
-
----
-
 ## 💬 Feedback & Contact
 📬 Found a bug? Have suggestions?  
 Open an issue or contact me directly via [hocine.mediani7@gmail.com](mailto:hocine.mediani7@gmail.com)
